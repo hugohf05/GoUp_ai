@@ -1,0 +1,241 @@
+@startuml GoUp_AI_UML
+
+' ============================================================
+' GoUp AI - Diagrama UML Conceptual
+' ============================================================
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 13
+skinparam classHeaderBackgroundColor #E8EAF6
+skinparam classBorderColor #3F51B5
+skinparam classBackgroundColor #FAFAFA
+skinparam enumHeaderBackgroundColor #FFF3E0
+skinparam enumBorderColor #FF9800
+skinparam enumBackgroundColor #FFFDE7
+skinparam arrowColor #546E7A
+skinparam arrowThickness 1.5
+skinparam defaultFontName Arial
+skinparam nodesep 60
+skinparam ranksep 70
+
+skinparam rectangle {
+  BackgroundColor transparent
+  BorderColor #3F51B5
+  BorderThickness 2
+  Shadowing false
+  Padding 2
+  Margin 0
+  RoundCorner 0
+}
+
+hide circle
+
+title GoUp AI - Diagrama UML
+
+' ============================================================
+' ENUMERACIONS
+' ============================================================
+
+enum estat <<enum>> {
+  ACTIU
+  LESIONAT
+}
+
+enum activitat_fisica_diaria <<enum>> {
+  SEDENTARI
+  ACTIU
+  MOLT_ACTIU
+}
+
+enum tipus_ubicacio <<enum>> {
+  EXTERIOR
+  INTERIOR
+}
+
+enum tipus_alimentacio <<enum>> {
+  VEGETARIA
+  VEGA
+  OMNIVOR
+}
+
+enum estat_actual <<enum>> {
+  ACTIVA
+  REHABILITACIO
+  RESOLTA
+}
+
+enum tipus_superficie <<enum>> {
+  ASFALT
+  CINTA
+  TRAIL
+}
+
+' ============================================================
+' ENTITATS PRINCIPALS
+' ============================================================
+
+class atleta {
+  <u>dni_atleta</u>
+  nom
+  data_naixement
+  correu
+  numero_telefon
+  pes
+  composicio_corporal
+  altura
+  objectiu
+  activitat_fisica_diaria
+  estat
+}
+
+class exercici {
+  <u>id_ex</u>
+  nom
+  descripcio
+  descans_entre_series
+}
+
+class ubicacio {
+  <u>id_ubicacio</u>
+  tipus_ubicacio
+  adreca
+}
+
+' ============================================================
+' ENTITATS DEBILS
+' ============================================================
+
+class sessio_entrenament {
+  <u>id_sessio</u>
+  data
+  duracio_total
+  comentaris
+}
+
+rectangle " " as box_descans {
+  class descans {
+    <u>data_inici</u>
+    duracio
+    despert
+    rem
+    core
+    deep
+    hrv
+  }
+}
+
+rectangle " " as box_registre {
+  class registre_diari {
+    <u>data</u>
+    adaptabilitat_alimentacio
+    comentaris_entrenaments
+    estat_recuperacio_descans
+    nivell_energia
+    nivell_estres
+    sensacions_generals
+  }
+}
+
+rectangle " " as box_lesio {
+  class lesio {
+    <u>id_lesio</u>
+    data_inici
+    data_fi
+    zona_afectada
+    grau_serietat
+    estat_actual
+    comentaris_diagnostic
+  }
+}
+
+rectangle " " as box_alimentacio {
+  class alimentacio {
+    tipus_alimentacio
+    calories
+    proteina
+    carbohidrats
+    grases
+    suplementacio
+  }
+}
+
+rectangle " " as box_informe {
+  class informe_ia {
+    recomanacio_entrenament
+    recomanacio_alimentacio
+    recomanacio_descans
+  }
+}
+
+rectangle " " as box_serie {
+  class serie {
+    <u>num_serie</u>
+  }
+}
+
+' ============================================================
+' ESPECIALITZACIONS ISA (de serie)
+' ============================================================
+
+class resistencia {
+  duracio
+  tipus_superficie
+  distancia
+  desnivell
+  freq_cardiaca_mitjana
+}
+
+class forca {
+  grup_muscular
+  pes
+  rpe
+}
+
+' ============================================================
+' CLASSE ASSOCIATIVA
+' ============================================================
+
+class valoracio {
+  valoracio
+  comentaris
+}
+
+' ============================================================
+' RELACIONS
+' ============================================================
+
+atleta "1" -- "0..*" lesio               : pateix >
+atleta "1" -- "0..*" registre_diari      : omple >
+registre_diari "1" -- "1" informe_ia     : es_genera >
+atleta "1" -- "0..*" descans             : realitza >
+atleta "1" -- "1" alimentacio            : te >
+atleta "1" -- "0..*" sessio_entrenament  : realitza >
+sessio_entrenament "0..*" -- "0..*" exercici : conte >
+sessio_entrenament "0..*" -- "1" ubicacio    : entrena_en >
+
+' --- Associacio atleta crea exercici ---
+atleta "1" -- "0..*" exercici            : crea >
+
+' --- Classe associativa valoracio ---
+atleta "0..*" -- "0..*" ubicacio
+(atleta, ubicacio) .. valoracio
+
+' --- Exercici conte Series (Serie es classe feble d'Exercici) ---
+exercici "1" -- "1..*" serie             : conte >
+
+' --- Herencia ISA (serie -> resistencia / forca) ---
+serie <|-- resistencia
+serie <|-- forca
+
+note "l'especialització és complete i disjoint." as N1
+serie .. N1
+
+' --- Enums vinculats ---
+atleta ..> estat
+atleta ..> activitat_fisica_diaria
+alimentacio ..> tipus_alimentacio
+ubicacio ..> tipus_ubicacio
+lesio ..> estat_actual
+resistencia ..> tipus_superficie
+
+@enduml
