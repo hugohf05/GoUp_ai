@@ -52,7 +52,7 @@ class Atleta(models.Model):
 
 
 class Alimentacio(models.Model):
-    atleta = models.OneToOneField(Atleta, on_delete=models.CASCADE, related_name='alimentacio', help_text="Atleta a qui pertany aquesta dieta")
+    atleta = models.OneToOneField(Atleta, on_delete=models.RESTRICT, related_name='alimentacio', help_text="Atleta a qui pertany aquesta dieta")
     tipus_alimentacio = models.CharField(max_length=15, choices=TipusAlimentacio.choices, help_text="Preferència dietètica")
     calories = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0.01)], help_text="Objectiu calòric diari (kcal)")
     proteina = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0.01)], help_text="Grams de proteïna diaris (g)")
@@ -107,7 +107,7 @@ class Exercici(models.Model):
 
 class SessioEntrenament(models.Model):
     atleta = models.ForeignKey(Atleta, on_delete=models.CASCADE, help_text="Atleta que realitza la sessió")
-    ubicacio = models.ForeignKey(Ubicacio, on_delete=models.PROTECT, help_text="Lloc de la sessió")
+    ubicacio = models.ForeignKey(Ubicacio, on_delete=models.CASCADE, help_text="Lloc de la sessió")
     data = models.DateField(help_text="Data de la sessió d'entrenament (Format: AAAA-MM-DD)")
     duracio_total = models.DurationField(help_text="Duració completa de l'entrenament (Format: HH:MM:SS)")
     comentaris = models.TextField(null=True, blank=True, help_text="Sensacions i notes de l'entrenament")
@@ -121,7 +121,7 @@ class SessioEntrenament(models.Model):
 
 
 class Serie(models.Model):
-    exercici = models.ForeignKey(Exercici, on_delete=models.CASCADE, related_name='%(class)s', help_text="Exercici al qual pertany la sèrie")
+    exercici = models.ForeignKey(Exercici, on_delete=models.RESTRICT, related_name='%(class)s', help_text="Exercici al qual pertany la sèrie")
     num_serie = models.PositiveIntegerField(help_text="Número d'ordre d'aquesta sèrie")
 
     class Meta:
@@ -258,7 +258,7 @@ class RegistreDiari(models.Model):
 
 
 class InformeIA(models.Model):
-    registre_diari = models.OneToOneField(RegistreDiari, on_delete=models.CASCADE, related_name='informeIA', primary_key=True, help_text="Registre diari al qual s'associa aquest informe")
+    registre_diari = models.OneToOneField(RegistreDiari, on_delete=models.RESTRICT, related_name='informeIA', primary_key=True, help_text="Registre diari al qual s'associa aquest informe")
     recomanacio_entrenament = models.TextField(help_text="Anàlisi i suggeriments d'entrenament generats per l'IA")
     recomanacio_alimentacio = models.TextField(help_text="Anàlisi i suggeriments d'alimentació generats per l'IA")
     recomanacio_descans = models.TextField(help_text="Anàlisi i suggeriments de descans generats per l'IA")
