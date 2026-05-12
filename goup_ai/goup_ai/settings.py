@@ -81,8 +81,8 @@ DATABASES = {
         "PASSWORD": "dB.e7864955",
         "HOST": "ubiwan.epsevg.upc.edu",
         "PORT": "5432",
-        "OPTIONS": {
-            "options": "-c search_path=practica,public"
+        'OPTIONS': {
+            'options': '-c search_path=practica,public'
         },
     }
 }

@@ -121,7 +121,7 @@ class SessioEntrenament(models.Model):
 
 
 class Serie(models.Model):
-    exercici = models.ForeignKey(Exercici, on_delete=models.RESTRICT, related_name='%(class)s', help_text="Exercici al qual pertany la sèrie")
+    exercici = models.ForeignKey(Exercici, on_delete=models.CASCADE, related_name='%(class)s', help_text="Exercici al qual pertany la sèrie")
     num_serie = models.PositiveIntegerField(help_text="Número d'ordre d'aquesta sèrie")
 
     class Meta:
