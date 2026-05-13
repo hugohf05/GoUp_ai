@@ -82,7 +82,12 @@ DATABASES = {
         "HOST": "ubiwan.epsevg.upc.edu",
         "PORT": "5432",
         'OPTIONS': {
-            'options': '-c search_path=practica,public'
+            'options': '-c search_path=practica,public',
+            'connect_timeout': 30,
+            'keepalives': 1,              # Activa keepalives
+            'keepalives_idle': 30,         # Segundos de inactividad antes de enviar señal
+            'keepalives_interval': 10,     # Intervalo entre señales
+            'keepalives_count': 5,         # Intentos antes de cerrar
         },
     }
 }

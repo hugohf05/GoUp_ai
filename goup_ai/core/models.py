@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils.translation import gettext_lazy as _
@@ -169,7 +171,6 @@ class Lesio(models.Model):
 
     def clean(self):
         from django.core.exceptions import ValidationError
-        from datetime import date
 
         # 1. data_inici <= data_fi
         if self.data_inici and self.data_fi:
@@ -230,7 +231,9 @@ class Descans(models.Model):
 
 class RegistreDiari(models.Model):
     atleta = models.ForeignKey(Atleta, on_delete=models.CASCADE, related_name='registres', help_text="Atleta que omple el registre")
-    data = models.DateField(auto_now_add=True, help_text="Data de creació (Assignada automàticament a avui)")
+    # CANVI: de auto_now_add=True a default=date.today perquè sigui assignable manualment
+    # (necessari per a bulk_create amb dates històriques) i editable des de l'admin si cal.
+    data = models.DateField(default=date.today, help_text="Data del registre (per defecte avui)")
     adaptabilitat_alimentacio = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0.0), MaxValueValidator(100.0)], help_text="Percentatge d'adherència a la dieta establerta (0-100%)")
     comentaris_entrenaments = models.TextField(null=True, blank=True, help_text="Comentaris sobre l'esforç, la motivació o incidents")
     estat_recuperacio_descans = models.DecimalField(max_digits=2, decimal_places=1, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)], help_text="Sensació de recuperació al despertar (0.0 a 5.0)")
@@ -240,7 +243,6 @@ class RegistreDiari(models.Model):
 
     def clean(self):
         from django.core.exceptions import ValidationError
-        from datetime import date
         
         # Si estem creant un registre nou i l'atleta ja en té un per avui, llancem error visual
         if not self.pk and hasattr(self, 'atleta') and self.atleta:
@@ -258,7 +260,16 @@ class RegistreDiari(models.Model):
 
 
 class InformeIA(models.Model):
-    registre_diari = models.OneToOneField(RegistreDiari, on_delete=models.RESTRICT, related_name='informeIA', primary_key=True, help_text="Registre diari al qual s'associa aquest informe")
+    # Relació 1:1 obligatòria: cada RegistreDiari té exactament un InformeIA.
+    # La FK viu aquí (InformeIA → RegistreDiari) perquè Django no permet
+    # referències circulars entre models al mateix nivell.
+    # S'accedeix des del registre amb: registre.informeIA
+    registre_diari = models.OneToOneField(
+        RegistreDiari,
+        on_delete=models.CASCADE,   # CANVI: CASCADE perquè si s'esborra el registre, s'esborra l'informe
+        related_name='informeIA',
+        help_text="Registre diari al qual s'associa aquest informe"
+    )
     recomanacio_entrenament = models.TextField(help_text="Anàlisi i suggeriments d'entrenament generats per l'IA")
     recomanacio_alimentacio = models.TextField(help_text="Anàlisi i suggeriments d'alimentació generats per l'IA")
     recomanacio_descans = models.TextField(help_text="Anàlisi i suggeriments de descans generats per l'IA")
