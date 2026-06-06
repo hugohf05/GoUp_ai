@@ -1,0 +1,141 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{% if is_edit %}Modificar Atleta{% else %}Nou Atleta{% endif %} - GoUp AI{% endblock %}
+
+{% block page_title %}{% if is_edit %}Editar Perfil d'Atleta{% else %}Registrar Nou Atleta{% endif %}{% endblock %}
+{% block page_subtitle %}{% if is_edit %}Actualitzeu els detalls de l'atleta {{ form.instance.nom }}{% else %}Introduïu les dades de l'atleta per registrar-lo al sistema{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+  <form method="POST" novalidate>
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        <i data-lucide="alert-octagon"></i>
+        <div>
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="form-grid">
+      <!-- DNI Field -->
+      <div class="form-group">
+        <label for="{{ form.dni_atleta.id_for_label }}" class="form-label">DNI / Document d'Identitat</label>
+        {% if is_edit %}
+          <input type="text" value="{{ form.instance.dni_atleta }}" class="form-control" disabled style="opacity: 0.6; cursor: not-allowed;">
+          <input type="hidden" name="dni_atleta" value="{{ form.instance.dni_atleta }}">
+        {% else %}
+          {{ form.dni_atleta }}
+        {% endif %}
+        {% if form.dni_atleta.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.dni_atleta.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Exemple: 12345678X</span>
+      </div>
+
+      <!-- Nom Field -->
+      <div class="form-group">
+        <label for="{{ form.nom.id_for_label }}" class="form-label">Nom Complet</label>
+        {{ form.nom }}
+        {% if form.nom.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.nom.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Correu Field -->
+      <div class="form-group">
+        <label for="{{ form.correu.id_for_label }}" class="form-label">Correu Electrònic</label>
+        {{ form.correu }}
+        {% if form.correu.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.correu.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Telèfon Field -->
+      <div class="form-group">
+        <label for="{{ form.numero_telefon.id_for_label }}" class="form-label">Número de Telèfon</label>
+        {{ form.numero_telefon }}
+        {% if form.numero_telefon.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.numero_telefon.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Data Naixement Field -->
+      <div class="form-group">
+        <label for="{{ form.data_naixement.id_for_label }}" class="form-label">Data de Naixement</label>
+        {{ form.data_naixement }}
+        {% if form.data_naixement.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.data_naixement.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Pes Field -->
+      <div class="form-group">
+        <label for="{{ form.pes.id_for_label }}" class="form-label">Pes (kg)</label>
+        {{ form.pes }}
+        {% if form.pes.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.pes.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Altura Field -->
+      <div class="form-group">
+        <label for="{{ form.altura.id_for_label }}" class="form-label">Altura (m)</label>
+        {{ form.altura }}
+        {% if form.altura.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.altura.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Composicio Corporal Field -->
+      <div class="form-group">
+        <label for="{{ form.composicio_corporal.id_for_label }}" class="form-label">Composició Corporal</label>
+        {{ form.composicio_corporal }}
+        {% if form.composicio_corporal.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.composicio_corporal.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Exemple: 14% greix corporal</span>
+      </div>
+
+      <!-- Objectiu Field -->
+      <div class="form-group">
+        <label for="{{ form.objectiu.id_for_label }}" class="form-label">Objectiu Principal</label>
+        {{ form.objectiu }}
+        {% if form.objectiu.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.objectiu.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Activitat Fisica Diaria Field -->
+      <div class="form-group">
+        <label for="{{ form.activitat_fisica_diaria.id_for_label }}" class="form-label">Activitat Física Diària</label>
+        {{ form.activitat_fisica_diaria }}
+        {% if form.activitat_fisica_diaria.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.activitat_fisica_diaria.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Estat Field -->
+      <div class="form-group form-full-width">
+        <label for="{{ form.estat.id_for_label }}" class="form-label">Estat de l'Atleta</label>
+        {{ form.estat }}
+        {% if form.estat.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.estat.errors.0 }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+      <a href="{% url 'atleta_list' %}" class="btn btn-secondary">Cancel·lar</a>
+      <button type="submit" class="btn btn-primary">
+        <i data-lucide="check"></i> {% if is_edit %}Desar Canvis{% else %}Crear Atleta{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

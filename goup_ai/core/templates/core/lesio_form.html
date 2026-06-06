@@ -1,0 +1,122 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{% if is_edit %}Modificar Lesió{% else %}Registrar Lesió{% endif %} - GoUp AI{% endblock %}
+
+{% block page_title %}{% if is_edit %}Editar Registre de Lesió{% else %}Registrar Nova Lesió{% endif %}{% endblock %}
+{% block page_subtitle %}{% if is_edit %}Modifiqueu els detalls de la lesió de {{ form.instance.atleta.nom }}{% else %}Introduïu els detalls de la lesió de l'atleta{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 650px; margin: 0 auto;">
+  <form method="POST" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        <i data-lucide="alert-octagon"></i>
+        <div>
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="form-grid" style="grid-template-columns: 1fr;">
+      
+      <!-- Atleta Selection -->
+      <div class="form-group">
+        <label for="{{ form.atleta.id_for_label }}" class="form-label">Atleta afectat</label>
+        {% if is_edit or fixed_atleta %}
+          <input type="text" value="{% if is_edit %}{{ form.instance.atleta.nom }}{% else %}{{ fixed_atleta.nom }}{% endif %} (DNI: {% if is_edit %}{{ form.instance.atleta_id }}{% else %}{{ fixed_atleta.dni_atleta }}{% endif %})" class="form-control" disabled style="opacity: 0.6; cursor: not-allowed;">
+          <input type="hidden" name="atleta" value="{% if is_edit %}{{ form.instance.atleta_id }}{% else %}{{ fixed_atleta.dni_atleta }}{% endif %}">
+        {% else %}
+          {{ form.atleta }}
+        {% endif %}
+        {% if form.atleta.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.atleta.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- ID Lesio Field (relative to athlete) - Només visible en edició -->
+      {% if is_edit %}
+      <div class="form-group">
+        <label class="form-label">ID de la Lesió (relatiu a l'atleta)</label>
+        <input type="text" value="#{{ form.instance.id_lesio }}" class="form-control" disabled style="opacity: 0.6; cursor: not-allowed;">
+      </div>
+      {% endif %}
+
+      <!-- Zona Afectada Field -->
+      <div class="form-group">
+        <label for="{{ form.zona_afectada.id_for_label }}" class="form-label">Zona Afectada</label>
+        {{ form.zona_afectada }}
+        {% if form.zona_afectada.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.zona_afectada.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Exemple: Genoll esquerre, Lumbar, Hombro, etc.</span>
+      </div>
+
+      <!-- Grau Serietat Field -->
+      <div class="form-group">
+        <label for="{{ form.grau_serietat.id_for_label }}" class="form-label">Grau de Serietat</label>
+        {{ form.grau_serietat }}
+        {% if form.grau_serietat.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.grau_serietat.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Puntuació entera de 0 (molt lleu) a 5 (molt greu).</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <!-- Data Inici Field -->
+        <div class="form-group">
+          <label for="{{ form.data_inici.id_for_label }}" class="form-label">Data d'Inici</label>
+          {{ form.data_inici }}
+          {% if form.data_inici.errors %}
+            <span style="color: var(--danger); font-size: 0.8rem;">{{ form.data_inici.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Data Fi Field -->
+        <div class="form-group">
+          <label for="{{ form.data_fi.id_for_label }}" class="form-label">Data de Finalització (opcional)</label>
+          {{ form.data_fi }}
+          {% if form.data_fi.errors %}
+            <span style="color: var(--danger); font-size: 0.8rem;">{{ form.data_fi.errors.0 }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Estat Actual Field -->
+      <div class="form-group">
+        <label for="{{ form.estat_actual.id_for_label }}" class="form-label">Estat Actual</label>
+        {{ form.estat_actual }}
+        {% if form.estat_actual.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.estat_actual.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Nota: Si l'estat és "ACTIVA", l'atleta serà marcat automàticament com a "LESIONAT".</span>
+      </div>
+
+      <!-- Diagnostic comments -->
+      <div class="form-group">
+        <label for="{{ form.comentaris_diagnostic.id_for_label }}" class="form-label">Comentaris de Diagnòstic</label>
+        {{ form.comentaris_diagnostic }}
+        {% if form.comentaris_diagnostic.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.comentaris_diagnostic.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+      {% if fixed_atleta %}
+        <a href="{% url 'atleta_detail' fixed_atleta.dni_atleta %}" class="btn btn-secondary">Cancel·lar</a>
+      {% else %}
+        <a href="{% url 'lesio_list' %}" class="btn btn-secondary">Cancel·lar</a>
+      {% endif %}
+      <button type="submit" class="btn btn-primary">
+        <i data-lucide="check"></i> {% if is_edit %}Desar Canvis{% else %}Registrar Lesió{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

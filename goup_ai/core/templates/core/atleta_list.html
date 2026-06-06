@@ -1,0 +1,101 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Atletes - GoUp AI{% endblock %}
+
+{% block page_title %}Gestió d'Atletes{% endblock %}
+{% block page_subtitle %}Consulteu, cerqueu i gestioneu els perfils d'atletes hybrids de GoUp AI{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'atleta_create' %}" class="btn btn-primary">
+  <i data-lucide="plus"></i> Afegir Atleta
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <!-- Search & Filters -->
+  <form method="GET" action="{% url 'atleta_list' %}" class="filters-bar">
+    <div class="search-input-wrapper">
+      <i data-lucide="search" class="search-icon"></i>
+      <input type="text" name="q" value="{{ query_search }}" placeholder="Cerca atletes per nom, DNI o correu..." class="form-control">
+    </div>
+    <button type="submit" class="btn btn-secondary">Cercar</button>
+    {% if query_search %}
+      <a href="{% url 'atleta_list' %}" class="btn btn-secondary">Netejar</a>
+    {% endif %}
+  </form>
+
+  <!-- Athletes List Table -->
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>DNI</th>
+          <th>Nom complet</th>
+          <th>Correu electrònic</th>
+          <th>Telèfon</th>
+          <th>Objectiu</th>
+          <th>Estat</th>
+          <th style="text-align: right;">Accions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for atleta in athletes %}
+          <tr>
+            <td style="font-family: monospace; font-weight: 600;">{{ atleta.dni_atleta }}</td>
+            <td>
+              <div style="font-weight: 600;">{{ atleta.nom }}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ atleta.data_naixement|date:"d/m/Y" }} (Edat: {{ atleta.edat }} anys)</div>
+            </td>
+            <td>{{ atleta.correu }}</td>
+            <td>{{ atleta.numero_telefon }}</td>
+            <td>{{ atleta.objectiu }}</td>
+            <td>
+              {% if atleta.estat == 'ACTIU' %}
+                <span class="badge badge-success">Actiu</span>
+              {% else %}
+                <span class="badge badge-danger">Lesionat</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right; display: flex; justify-content: flex-end; gap: 0.5rem;">
+              <a href="{% url 'atleta_detail' atleta.dni_atleta %}" class="btn btn-secondary" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" title="Veure Detalls">
+                <i data-lucide="eye" style="width: 14px; height: 14px;"></i>
+              </a>
+              <a href="{% url 'atleta_update' atleta.dni_atleta %}" class="btn btn-secondary" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" title="Editar">
+                <i data-lucide="edit" style="width: 14px; height: 14px;"></i>
+              </a>
+              <a href="{% url 'atleta_delete' atleta.dni_atleta %}" class="btn btn-danger" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;" title="Eliminar" onclick="return confirm('Esteu segur de voler eliminar l\'atleta {{ atleta.nom }}? Aquesta acció és irreversible.')">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem;">No s'han trobat atletes.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Bar -->
+  {% if is_paginated %}
+    <div class="pagination">
+      <span class="pagination-info">
+        Mostrant pàgina <strong>{{ page_obj.number }}</strong> de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} atletes totals)
+      </span>
+      <div class="pagination-controls">
+        {% if page_obj.has_previous %}
+          <a href="?page=1{% if query_search %}&q={{ query_search }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-left"></i></a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if query_search %}&q={{ query_search }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-left"></i></a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if query_search %}&q={{ query_search }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-right"></i></a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if query_search %}&q={{ query_search }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

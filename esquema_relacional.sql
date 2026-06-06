@@ -16,7 +16,7 @@ CREATE TABLE atleta (
     correu              VARCHAR(150)    NOT NULL,
     numero_telefon      VARCHAR(20)     NOT NULL,
     pes                 DECIMAL(5,2)    NOT NULL CHECK (pes > 0),
-    composicio_corporal VARCHAR(200)    NOT NULL CHECK (composicio_corporal > 0),
+    composicio_corporal VARCHAR(200)    NOT NULL,
     altura              DECIMAL(5,2)    NOT NULL CHECK (altura > 0),
     objectiu            VARCHAR(100)    NOT NULL,
     activitat_fisica_diaria VARCHAR(15) NOT NULL

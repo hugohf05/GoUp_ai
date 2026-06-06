@@ -90,6 +90,19 @@ class Valoracio(models.Model):
         unique_together = ('atleta', 'ubicacio')
         verbose_name_plural = "Valoracions"
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if hasattr(self, 'atleta') and self.atleta and hasattr(self, 'ubicacio') and self.ubicacio:
+            te_sessio = SessioEntrenament.objects.filter(atleta=self.atleta, ubicacio=self.ubicacio).exists()
+            if not te_sessio:
+                raise ValidationError({
+                    "ubicacio": f"L'atleta {self.atleta.nom} no pot valorar aquesta ubicació perquè no hi ha realitzat cap sessió d'entrenament."
+                })
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.atleta.nom} valora ubicació {self.ubicacio.id} amb {self.valoracio}"
 
@@ -162,6 +175,7 @@ class Resistencia(Serie):
 
 class Lesio(models.Model):
     atleta = models.ForeignKey(Atleta, on_delete=models.CASCADE, related_name='lesions', help_text="Atleta que pateix la lesió")
+    id_lesio = models.IntegerField(default=1, help_text="Identificador de la lesió propi de l'atleta")
     data_inici = models.DateField(help_text="Data en què es va produir o diagnosticar (Format: AAAA-MM-DD)")
     data_fi = models.DateField(null=True, blank=True, help_text="Data de curació total. Deixar en blanc si encara està activa. (Format: AAAA-MM-DD)")
     zona_afectada = models.CharField(max_length=100, help_text="Part del cos lesionada (ex. Genoll dret, Espatlla)")
@@ -193,10 +207,29 @@ class Lesio(models.Model):
                     "data_fi": "La data de finalització d'una lesió resolta no pot ser en el futur."
                 })
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+        # RI-2: Si un atleta té una lesió amb estat_actual = 'ACTIVA', l'estat de l'atleta ha de ser 'LESIONAT'
+        atleta = self.atleta
+        if self.estat_actual == EstatActual.ACTIVA:
+            if atleta.estat != EstatAtleta.LESIONAT:
+                atleta.estat = EstatAtleta.LESIONAT
+                atleta.save(update_fields=['estat'])
+        else:
+            # Si es guarda una lesió resolta o en rehabilitació, comprovem si encara té alguna lesió ACTIVA
+            if atleta.estat == EstatAtleta.LESIONAT:
+                active_lesions = Lesio.objects.filter(atleta=atleta, estat_actual=EstatActual.ACTIVA).exclude(pk=self.pk).exists()
+                if not active_lesions:
+                    atleta.estat = EstatAtleta.ACTIU
+                    atleta.save(update_fields=['estat'])
+
     def __str__(self):
         return f"Lesió {self.zona_afectada} ({self.atleta.nom})"
 
     class Meta:
+        unique_together = ('atleta', 'id_lesio')
         verbose_name_plural = "Lesions"
 
 

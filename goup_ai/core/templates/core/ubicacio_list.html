@@ -1,0 +1,102 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Ubicacions - GoUp AI{% endblock %}
+
+{% block page_title %}Ubicacions d'Entrenament{% endblock %}
+{% block page_subtitle %}Consulteu les zones i gimnasos disponibles, i les valoracions que han fet els atletes{% endblock %}
+
+{% block content %}
+<div class="card">
+  <!-- Search & Filters -->
+  <form method="GET" action="{% url 'ubicacio_list' %}" class="filters-bar">
+    <div class="search-input-wrapper">
+      <i data-lucide="search" class="search-icon"></i>
+      <input type="text" name="q" value="{{ query_search }}" placeholder="Cerca ubicacions per adreça o municipi..." class="form-control">
+    </div>
+    
+    <select name="type" class="form-control" style="max-width: 200px;">
+      <option value="">Tots els tipus</option>
+      <option value="EXTERIOR" {% if type_filter == 'EXTERIOR' %}selected{% endif %}>Exterior</option>
+      <option value="INTERIOR" {% if type_filter == 'INTERIOR' %}selected{% endif %}>Interior</option>
+    </select>
+
+    <button type="submit" class="btn btn-secondary">Filtrar</button>
+    {% if query_search or type_filter %}
+      <a href="{% url 'ubicacio_list' %}" class="btn btn-secondary">Netejar</a>
+    {% endif %}
+  </form>
+
+  <!-- Ubicacions Table -->
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tipus d'Ubicació</th>
+          <th>Adreça / Lloc</th>
+          <th>Valoració Mitjana</th>
+          <th>Total Vots</th>
+          <th style="text-align: right;">Accions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ub in locations %}
+          <tr>
+            <td style="font-family: monospace; font-weight: 600;">#{{ ub.id }}</td>
+            <td>
+              {% if ub.tipus_ubicacio == 'EXTERIOR' %}
+                <span class="badge badge-info"><i data-lucide="sun" style="width: 12px; height: 12px; margin-right: 0.2rem;"></i> Exterior</span>
+              {% else %}
+                <span class="badge badge-success"><i data-lucide="home" style="width: 12px; height: 12px; margin-right: 0.2rem;"></i> Interior</span>
+              {% endif %}
+            </td>
+            <td style="font-weight: 600;">{{ ub.adreca }}</td>
+            <td>
+              {% if ub.avg_rating %}
+                <span style="display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 700; color: #fbbf24;">
+                  <i data-lucide="star" style="fill: #fbbf24; width: 14px; height: 14px;"></i>
+                  {{ ub.avg_rating|floatformat:1 }} / 5.0
+                </span>
+              {% else %}
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Sense valoracions</span>
+              {% endif %}
+            </td>
+            <td>
+              <span style="font-weight: 500;">{{ ub.num_ratings }}</span> opinions
+            </td>
+            <td style="text-align: right;">
+              <a href="{% url 'valoracio_create' %}?ubicacio={{ ub.id }}" class="btn btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
+                <i data-lucide="star" style="width: 14px; height: 14px;"></i> Valorar
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">No s'han trobat ubicacions.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <div class="pagination">
+      <span class="pagination-info">
+        Mostrant pàgina <strong>{{ page_obj.number }}</strong> de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} ubicacions totals)
+      </span>
+      <div class="pagination-controls">
+        {% if page_obj.has_previous %}
+          <a href="?page=1{% if query_search %}&q={{ query_search }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-left"></i></a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if query_search %}&q={{ query_search }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-left"></i></a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if query_search %}&q={{ query_search }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-right"></i></a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if query_search %}&q={{ query_search }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

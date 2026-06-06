@@ -1,0 +1,104 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Registrar Sessió d'Entrenament - GoUp AI{% endblock %}
+
+{% block page_title %}Registrar Nova Sessió{% endblock %}
+{% block page_subtitle %}Creeu una sessió d'entrenament, associeu-la a una ubicació i trieu els exercicis realitzats{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 700px; margin: 0 auto;">
+  <form method="POST" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        <i data-lucide="alert-octagon"></i>
+        <div>
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="form-grid" style="grid-template-columns: 1fr;">
+      
+      <!-- Atleta Selection -->
+      <div class="form-group">
+        <label for="{{ form.atleta.id_for_label }}" class="form-label">Atleta que entrena</label>
+        {% if fixed_atleta %}
+          <input type="text" value="{{ fixed_atleta.nom }} (DNI: {{ fixed_atleta.dni_atleta }})" class="form-control" disabled style="opacity: 0.6; cursor: not-allowed;">
+          <input type="hidden" name="atleta" value="{{ fixed_atleta.dni_atleta }}">
+        {% else %}
+          {{ form.atleta }}
+        {% endif %}
+        {% if form.atleta.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.atleta.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Ubicacio Selection -->
+      <div class="form-group">
+        <label for="{{ form.ubicacio.id_for_label }}" class="form-label">Ubicació / Lloc d'Entrenament</label>
+        {{ form.ubicacio }}
+        {% if form.ubicacio.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.ubicacio.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <!-- Data Field -->
+        <div class="form-group">
+          <label for="{{ form.data.id_for_label }}" class="form-label">Data de la Sessió</label>
+          {{ form.data }}
+          {% if form.data.errors %}
+            <span style="color: var(--danger); font-size: 0.8rem;">{{ form.data.errors.0 }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Durada Field -->
+        <div class="form-group">
+          <label for="{{ form.duracio_total.id_for_label }}" class="form-label">Durada Total (Format: HH:MM:SS)</label>
+          {{ form.duracio_total }}
+          {% if form.duracio_total.errors %}
+            <span style="color: var(--danger); font-size: 0.8rem;">{{ form.duracio_total.errors.0 }}</span>
+          {% endif %}
+          <span class="form-help">Exemple: 01:30:00 per a una hora i mitja</span>
+        </div>
+      </div>
+
+      <!-- Comentaris Field -->
+      <div class="form-group">
+        <label for="{{ form.comentaris.id_for_label }}" class="form-label">Comentaris i Notes (opcional)</label>
+        {{ form.comentaris }}
+        {% if form.comentaris.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.comentaris.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Exercicis Selection -->
+      <div class="form-group">
+        <label for="{{ form.exercicis.id_for_label }}" class="form-label">Exercicis Realitzats</label>
+        {{ form.exercicis }}
+        {% if form.exercicis.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.exercicis.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Manté premut Ctrl o Cmd per seleccionar múltiples exercicis.</span>
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+      {% if fixed_atleta %}
+        <a href="{% url 'atleta_detail' fixed_atleta.dni_atleta %}" class="btn btn-secondary">Cancel·lar</a>
+      {% else %}
+        <a href="{% url 'sessio_list' %}" class="btn btn-secondary">Cancel·lar</a>
+      {% endif %}
+      <button type="submit" class="btn btn-primary">
+        <i data-lucide="check"></i> Registrar Sessió
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+from django.urls import path
+from .views import (
+    DashboardView,
+    AtletaListView, AtletaDetailView, AtletaCreateView, AtletaUpdateView, AtletaDeleteView,
+    LesioListView, LesioCreateView, LesioUpdateView,
+    SessioListView, SessioCreateView,
+    UbicacioListView, ValoracioCreateView
+)
+
+urlpatterns = [
+    # Dashboard Overview
+    path("", DashboardView.as_view(), name="dashboard"),
+    
+    # Atletes CRUD
+    path("atletes/", AtletaListView.as_view(), name="atleta_list"),
+    path("atletes/nou/", AtletaCreateView.as_view(), name="atleta_create"),
+    path("atletes/<str:dni>/", AtletaDetailView.as_view(), name="atleta_detail"),
+    path("atletes/<str:dni>/editar/", AtletaUpdateView.as_view(), name="atleta_update"),
+    path("atletes/<str:dni>/eliminar/", AtletaDeleteView.as_view(), name="atleta_delete"),
+    
+    # Lesions CRUD (using athlete DNI and lesion ID for compound identification)
+    path("lesions/", LesioListView.as_view(), name="lesio_list"),
+    path("lesions/nova/", LesioCreateView.as_view(), name="lesio_create"),
+    path("lesions/<str:dni>/<int:id_lesio>/editar/", LesioUpdateView.as_view(), name="lesio_update"),
+    
+    # Sessions d'Entrenament CRUD
+    path("sessions/", SessioListView.as_view(), name="sessio_list"),
+    path("sessions/nova/", SessioCreateView.as_view(), name="sessio_create"),
+    
+    # Ubicacions i Valoracions
+    path("ubicacions/", UbicacioListView.as_view(), name="ubicacio_list"),
+    path("valorar/", ValoracioCreateView.as_view(), name="valoracio_create"),
+]

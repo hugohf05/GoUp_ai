@@ -1,0 +1,113 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Lesions - GoUp AI{% endblock %}
+
+{% block page_title %}Historial de Lesions{% endblock %}
+{% block page_subtitle %}Consulteu, cerqueu i gestioneu les lesions i processos de recuperació dels atletes{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'lesio_create' %}" class="btn btn-primary">
+  <i data-lucide="plus"></i> Registrar Lesió
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <!-- Search & Filters -->
+  <form method="GET" action="{% url 'lesio_list' %}" class="filters-bar">
+    <div class="search-input-wrapper">
+      <i data-lucide="search" class="search-icon"></i>
+      <input type="text" name="q" value="{{ query_search }}" placeholder="Cerca lesions per zona o atleta..." class="form-control">
+    </div>
+    
+    <select name="status" class="form-control" style="max-width: 200px;">
+      <option value="">Tots els estats</option>
+      <option value="ACTIVA" {% if status_filter == 'ACTIVA' %}selected{% endif %}>Activa</option>
+      <option value="REHABILITACIO" {% if status_filter == 'REHABILITACIO' %}selected{% endif %}>Rehabilitació</option>
+      <option value="RESOLTA" {% if status_filter == 'RESOLTA' %}selected{% endif %}>Resolta</option>
+    </select>
+
+    <button type="submit" class="btn btn-secondary">Filtrar</button>
+    {% if query_search or status_filter %}
+      <a href="{% url 'lesio_list' %}" class="btn btn-secondary">Netejar</a>
+    {% endif %}
+  </form>
+
+  <!-- Lesions Table -->
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Atleta</th>
+          <th>ID Lesió</th>
+          <th>Zona Afectada</th>
+          <th>Serietat</th>
+          <th>Data Inici</th>
+          <th>Data Fi</th>
+          <th>Estat</th>
+          <th style="text-align: right;">Accions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lesio in lesions %}
+          <tr>
+            <td>
+              <a href="{% url 'atleta_detail' lesio.atleta.dni_atleta %}" style="font-weight: 600; text-decoration: underline; color: var(--primary);">
+                {{ lesio.atleta.nom }}
+              </a>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ lesio.atleta.dni_atleta }}</div>
+            </td>
+            <td style="font-family: monospace; font-weight: 600;">#{{ lesio.id_lesio }}</td>
+            <td style="font-weight: 600;">{{ lesio.zona_afectada }}</td>
+            <td>
+              <span style="color: {% if lesio.grau_serietat >= 4 %}var(--danger){% elif lesio.grau_serietat >= 2 %}var(--warning){% else %}var(--success){% endif %}; font-weight: 700;">
+                {{ lesio.grau_serietat }}/5
+              </span>
+            </td>
+            <td>{{ lesio.data_inici|date:"d/m/Y" }}</td>
+            <td>{% if lesio.data_fi %}{{ lesio.data_fi|date:"d/m/Y" }}{% else %}-{% endif %}</td>
+            <td>
+              {% if lesio.estat_actual == 'ACTIVA' %}
+                <span class="badge badge-danger">Activa</span>
+              {% elif lesio.estat_actual == 'REHABILITACIO' %}
+                <span class="badge badge-warning">Rehabilitació</span>
+              {% else %}
+                <span class="badge badge-success">Resolta</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              <a href="{% url 'lesio_update' lesio.atleta.dni_atleta lesio.id_lesio %}" class="btn btn-secondary" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> Editar
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 3rem;">No s'han trobat lesions.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <div class="pagination">
+      <span class="pagination-info">
+        Mostrant pàgina <strong>{{ page_obj.number }}</strong> de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} lesions totals)
+      </span>
+      <div class="pagination-controls">
+        {% if page_obj.has_previous %}
+          <a href="?page=1{% if query_search %}&q={{ query_search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-left"></i></a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if query_search %}&q={{ query_search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-left"></i></a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if query_search %}&q={{ query_search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-right"></i></a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if query_search %}&q={{ query_search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Valorar Ubicació - GoUp AI{% endblock %}
+
+{% block page_title %}Nova Valoració{% endblock %}
+{% block page_subtitle %}Opineu sobre la ubicació seleccionada. Recordeu que heu d'haver realitzat algun entrenament en aquest lloc.{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+  
+  <!-- Integrity Constraint Alert Box -->
+  <div style="padding: 1rem; border-radius: var(--radius-md); background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: start;">
+    <i data-lucide="shield-alert" style="color: var(--primary); flex-shrink: 0; width: 20px; height: 20px;"></i>
+    <div style="font-size: 0.825rem; color: var(--text-secondary);">
+      <strong style="color: var(--text-primary);">Restricció d'Integritat (RI-1):</strong>
+      Per evitar valoracions "fantasma", el sistema comprovarà automàticament si l'atleta seleccionat té almenys una <strong>sessió d'entrenament registrada</strong> en aquesta ubicació. Si no és així, la valoració serà rebutjada.
+    </div>
+  </div>
+
+  <form method="POST" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        <i data-lucide="alert-octagon"></i>
+        <div>
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="form-grid" style="grid-template-columns: 1fr;">
+      
+      <!-- Atleta Selection -->
+      <div class="form-group">
+        <label for="{{ form.atleta.id_for_label }}" class="form-label">Atleta que fa la valoració</label>
+        {{ form.atleta }}
+        {% if form.atleta.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.atleta.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Ubicacio Selection -->
+      <div class="form-group">
+        <label for="{{ form.ubicacio.id_for_label }}" class="form-label">Ubicació a valorar</label>
+        {% if fixed_ubicacio %}
+          <input type="text" value="{{ fixed_ubicacio.adreca }} (Tipus: {{ fixed_ubicacio.tipus_ubicacio }})" class="form-control" disabled style="opacity: 0.6; cursor: not-allowed;">
+          <input type="hidden" name="ubicacio" value="{{ fixed_ubicacio.id }}">
+        {% else %}
+          {{ form.ubicacio }}
+        {% endif %}
+        {% if form.ubicacio.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.ubicacio.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Valoracio Rating Value Field -->
+      <div class="form-group">
+        <label for="{{ form.valoracio.id_for_label }}" class="form-label">Valoració (Puntuació de 0.0 a 5.0)</label>
+        {{ form.valoracio }}
+        {% if form.valoracio.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.valoracio.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Pots utilitzar decimals, per exemple: 4.5</span>
+      </div>
+
+      <!-- Comentaris Field -->
+      <div class="form-group">
+        <label for="{{ form.comentaris.id_for_label }}" class="form-label">Comentaris sobre les instal·lacions (opcional)</label>
+        {{ form.comentaris }}
+        {% if form.comentaris.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.comentaris.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+      <a href="{% url 'ubicacio_list' %}" class="btn btn-secondary">Cancel·lar</a>
+      <button type="submit" class="btn btn-primary">
+        <i data-lucide="star"></i> Enviar Valoració
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

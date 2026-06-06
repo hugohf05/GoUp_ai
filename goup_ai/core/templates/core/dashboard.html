@@ -1,0 +1,124 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Dashboard - GoUp AI{% endblock %}
+
+{% block page_title %}Dashboard de Gestió{% endblock %}
+{% block page_subtitle %}Vista general del rendiment, lesions i sessions d'entrenament{% endblock %}
+
+{% block content %}
+<!-- Metrics Dashboard Cards -->
+<section class="metrics-grid">
+  <!-- Card: Atletes totals -->
+  <div class="card metric-card">
+    <span class="metric-title">Atletes Actius</span>
+    <h2 class="metric-value">{{ total_atletes }}</h2>
+    <span class="metric-trend up">
+      <i data-lucide="users" style="width: 14px; height: 14px;"></i>
+      Registrats al sistema
+    </span>
+  </div>
+
+  <!-- Card: Atletes lesionats -->
+  <div class="card metric-card">
+    <span class="metric-title">En estat de Lesió</span>
+    <h2 class="metric-value" style="color: var(--danger); -webkit-text-fill-color: var(--danger);">{{ total_lesionats }}</h2>
+    <span class="metric-trend warning">
+      <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
+      Atletes no disponibles
+    </span>
+  </div>
+
+  <!-- Card: Sessions totals -->
+  <div class="card metric-card">
+    <span class="metric-title">Sessions totals</span>
+    <h2 class="metric-value">{{ total_sessions }}</h2>
+    <span class="metric-trend up">
+      <i data-lucide="bar-chart" style="width: 14px; height: 14px;"></i>
+      Històric d'entrenaments
+    </span>
+  </div>
+
+  <!-- Card: Valoracions totals -->
+  <div class="card metric-card">
+    <span class="metric-title">Valoracions</span>
+    <h2 class="metric-value">{{ total_valoracions }}</h2>
+    <span class="metric-trend info">
+      <i data-lucide="star" style="width: 14px; height: 14px;"></i>
+      Feedback d'instal·lacions
+    </span>
+  </div>
+</section>
+
+<!-- Dashboard Panels: 2 Columns Layout -->
+<div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2rem; margin-top: 2rem;">
+  
+  <!-- Panel: Recent Sessions -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h2 style="font-size: 1.15rem; font-weight: 700;">Últimes Sessions Registrades</h2>
+      <a href="{% url 'sessio_create' %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+        <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Nova Sessió
+      </a>
+    </div>
+    
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Atleta</th>
+            <th>Ubicació</th>
+            <th>Data</th>
+            <th>Durada</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sessio in recent_sessions %}
+            <tr>
+              <td>
+                <div style="font-weight: 600;">{{ sessio.atleta.nom }}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ sessio.atleta.dni_atleta }}</div>
+              </td>
+              <td>{{ sessio.ubicacio.adreca|truncatechars:35 }}</td>
+              <td>{{ sessio.data|date:"d/m/Y" }}</td>
+              <td>{{ sessio.duracio_total }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">No hi ha sessions recents registrades.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <!-- Panel: Active Lesions -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h2 style="font-size: 1.15rem; font-weight: 700;">Lesions Actives</h2>
+      <a href="{% url 'lesio_create' %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+        <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Registrar Lesió
+      </a>
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      {% for lesio in active_lesions %}
+        <div style="padding: 1rem; border-radius: var(--radius-md); background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-weight: 600; color: var(--text-primary);">{{ lesio.zona_afectada }} (Grau {{ lesio.grau_serietat }})</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Atleta: {{ lesio.atleta.nom }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Inici: {{ lesio.data_inici|date:"d/m/Y" }}</div>
+          </div>
+          <div>
+            <a href="{% url 'lesio_update' lesio.atleta.dni_atleta lesio.id_lesio %}" class="btn btn-secondary" style="padding: 0.35rem 0.7rem; font-size: 0.75rem;">
+              Editar
+            </a>
+          </div>
+        </div>
+      {% empty %}
+        <div style="text-align: center; color: var(--text-muted); padding: 2rem;">No hi ha lesions actives en aquest moment.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

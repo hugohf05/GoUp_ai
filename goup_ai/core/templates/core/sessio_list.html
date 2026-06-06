@@ -1,0 +1,98 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Sessions d'Entrenament - GoUp AI{% endblock %}
+
+{% block page_title %}Historial de Sessions{% endblock %}
+{% block page_subtitle %}Consulteu i registreu les sessions d'entrenament dels atletes de la plataforma{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'sessio_create' %}" class="btn btn-primary">
+  <i data-lucide="plus"></i> Nova Sessió
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <!-- Search & Filters -->
+  <form method="GET" action="{% url 'sessio_list' %}" class="filters-bar">
+    <div class="search-input-wrapper">
+      <i data-lucide="search" class="search-icon"></i>
+      <input type="text" name="q" value="{{ query_search }}" placeholder="Cerca sessions per nom d'atleta o DNI..." class="form-control">
+    </div>
+    <button type="submit" class="btn btn-secondary">Cercar</button>
+    {% if query_search %}
+      <a href="{% url 'sessio_list' %}" class="btn btn-secondary">Netejar</a>
+    {% endif %}
+  </form>
+
+  <!-- Sessions Table -->
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Atleta</th>
+          <th>Ubicació</th>
+          <th>Data</th>
+          <th>Durada Total</th>
+          <th>Comentaris</th>
+          <th>Exercicis</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sessio in sessions %}
+          <tr>
+            <td>
+              <a href="{% url 'atleta_detail' sessio.atleta.dni_atleta %}" style="font-weight: 600; text-decoration: underline; color: var(--primary);">
+                {{ sessio.atleta.nom }}
+              </a>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ sessio.atleta.dni_atleta }}</div>
+            </td>
+            <td>
+              <div style="font-weight: 500;">{{ sessio.ubicacio.adreca }}</div>
+              <div style="font-size: 0.75rem; color: var(--text-secondary);">{% if sessio.ubicacio.tipus_ubicacio == 'EXTERIOR' %}Exterior{% else %}Interior{% endif %}</div>
+            </td>
+            <td>{{ sessio.data|date:"d/m/Y" }}</td>
+            <td>{{ sessio.duracio_total }}</td>
+            <td style="font-size: 0.8rem; color: var(--text-secondary); max-width: 200px;">{{ sessio.comentaris|default:"-" }}</td>
+            <td>
+              <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                {% for ex in sessio.exercicis.all %}
+                  <span style="font-size: 0.7rem; background: rgba(255,255,255,0.06); border: 1px solid var(--border-color); padding: 0.15rem 0.4rem; border-radius: 4px; color: var(--text-primary);">
+                    {{ ex.nom }}
+                  </span>
+                {% empty %}
+                  <span style="font-size: 0.75rem; color: var(--text-muted);">-</span>
+                {% endfor %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 3rem;">No s'han trobat sessions.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <div class="pagination">
+      <span class="pagination-info">
+        Mostrant pàgina <strong>{{ page_obj.number }}</strong> de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} sessions totals)
+      </span>
+      <div class="pagination-controls">
+        {% if page_obj.has_previous %}
+          <a href="?page=1{% if query_search %}&q={{ query_search }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-left"></i></a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if query_search %}&q={{ query_search }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-left"></i></a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if query_search %}&q={{ query_search }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-right"></i></a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if query_search %}&q={{ query_search }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

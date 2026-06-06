@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}GoUp AI{% endblock %}</title>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="logo-container">
+        <div class="logo-icon">G</div>
+        <span class="logo-text">GoUp AI</span>
+      </div>
+      
+      <nav class="nav-menu">
+        <li class="nav-item {% if active_tab == 'dashboard' %}active{% endif %}">
+          <a href="{% url 'dashboard' %}">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'atletes' %}active{% endif %}">
+          <a href="{% url 'atleta_list' %}">
+            <i data-lucide="users"></i>
+            <span>Atletes</span>
+          </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'lesions' %}active{% endif %}">
+          <a href="{% url 'lesio_list' %}">
+            <i data-lucide="activity"></i>
+            <span>Lesions</span>
+          </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'sessions' %}active{% endif %}">
+          <a href="{% url 'sessio_list' %}">
+            <i data-lucide="calendar"></i>
+            <span>Sessions</span>
+          </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'ubicacions' %}active{% endif %}">
+          <a href="{% url 'ubicacio_list' %}">
+            <i data-lucide="map-pin"></i>
+            <span>Ubicacions</span>
+          </a>
+        </li>
+      </nav>
+      
+      <div class="nav-footer">
+        <p>Q6 - Bases de Dades</p>
+        <p>© 2026 GoUp AI</p>
+      </div>
+    </aside>
+    
+    <!-- Main Content Panel -->
+    <main class="main-content">
+      
+      <!-- Top header bar -->
+      <header class="header-container">
+        <div>
+          <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+          <p class="page-subtitle">{% block page_subtitle %}Resum de l'activitat i mètriques generals{% endblock %}</p>
+        </div>
+        <div>
+          {% block header_actions %}{% endblock %}
+        </div>
+      </header>
+      
+      <!-- Alerts block -->
+      {% if messages %}
+        <div class="messages-container">
+          {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% else %}alert-info{% endif %}">
+              <i data-lucide="info"></i>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      
+      <!-- Custom page content -->
+      {% block content %}{% endblock %}
+      
+    </main>
+  </div>
+  
+  <!-- Initialize Lucide Icons -->
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
