@@ -4,7 +4,8 @@ from .views import (
     AtletaListView, AtletaDetailView, AtletaCreateView, AtletaUpdateView, AtletaDeleteView,
     LesioListView, LesioCreateView, LesioUpdateView,
     SessioListView, SessioCreateView,
-    UbicacioListView, ValoracioCreateView
+    UbicacioListView, ValoracioCreateView,
+    RegistreDiariCreateView, InformeIADetailView, ExerciciCreateView
 )
 
 urlpatterns = [
@@ -27,7 +28,14 @@ urlpatterns = [
     path("sessions/", SessioListView.as_view(), name="sessio_list"),
     path("sessions/nova/", SessioCreateView.as_view(), name="sessio_create"),
     
+    # Exercicis
+    path("exercicis/nou/", ExerciciCreateView.as_view(), name="exercici_create"),
+    
     # Ubicacions i Valoracions
     path("ubicacions/", UbicacioListView.as_view(), name="ubicacio_list"),
     path("valorar/", ValoracioCreateView.as_view(), name="valoracio_create"),
+    
+    # Registres Diaris i Informes IA
+    path("atletes/<str:dni>/registre-diari/nou/", RegistreDiariCreateView.as_view(), name="registre_diari_create"),
+    path("informe-ia/<int:registre_id>/", InformeIADetailView.as_view(), name="informe_ia_detail"),
 ]

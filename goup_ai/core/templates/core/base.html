@@ -7,10 +7,11 @@
   <title>{% block title %}GoUp AI{% endblock %}</title>
   
   <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=2">
   
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  {% block extra_css %}{% endblock %}
 </head>
 <body>
   <div class="app-container">
@@ -45,6 +46,12 @@
           <a href="{% url 'sessio_list' %}">
             <i data-lucide="calendar"></i>
             <span>Sessions</span>
+          </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'exercicis' %}active{% endif %}">
+          <a href="{% url 'exercici_create' %}">
+            <i data-lucide="dumbbell"></i>
+            <span>Exercicis i Sèries</span>
           </a>
         </li>
         <li class="nav-item {% if active_tab == 'ubicacions' %}active{% endif %}">
@@ -97,5 +104,6 @@
   <script>
     lucide.createIcons();
   </script>
+  {% block extra_js %}{% endblock %}
 </body>
 </html>

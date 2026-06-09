@@ -21,7 +21,7 @@ L'aplicació està estructurada sobre un entorn web clàssic, robust i segur amb
 
 ## 2. Model de Dades i Entitats Implementades
 
-Per a complir amb les especificacions del professor (diversitat en relacions, entitats febles, N:M i regles de negoci complexes), hem implementat un subconjunt format per **5 entitats connectades** del diagrama UML:
+Per a complir amb les especificacions del professor (diversitat en relacions, entitats febles, N:M i regles de negoci complexes), hem implementat un subconjunt format per **7 entitats connectades** del diagrama UML:
 
 ```mermaid
 erDiagram
@@ -31,13 +31,17 @@ erDiagram
     Atleta ||--o{ Valoracio : "avalua (associativa)"
     Ubicacio ||--o{ Valoracio : "rebutja"
     SessioEntrenament }|--|{ Exercici : "conte (M2M)"
+    Atleta ||--o{ RegistreDiari : "omple"
+    RegistreDiari ||--|| InformeIA : "genera"
 ```
 
 1. **`Atleta`** (Entitat Principal): Representa l'usuari del sistema. Clau primària (`dni_atleta`) i camps únics de contacte (`correu`, `numero_telefon`).
-2. **`Lesio`** (Entitat Feble d'Atleta): Clave combinada única formada per `(atleta_id, id_lesio)`. Guarda registre de molèsties físiques i el seu estat.
+2. **`Lesio`** (Entitat Feble d'Atleta): Clau combinada única formada per `(atleta_id, id_lesio)`. Guarda registre de molèsties físiques i el seu estat.
 3. **`Ubicacio`** (Lloc físic): Gimnasos o espais on els atletes executen les seves sessions d'entrenament.
 4. **`SessioEntrenament`** (Sessió de treball): Relaciona l'atleta amb el lloc i la data de realització. Manté una relació N:M amb els exercicis.
 5. **`Valoracio`** (Classe Associativa N:M): Opinió puntuada de 0 a 5 estrelles que un atleta fa sobre una ubicació determinada.
+6. **`RegistreDiari`** (Sensacions diàries): Registre diari on l'atleta anota l'adherència a la dieta, son, estrès i energia.
+7. **`InformeIA`** (Classe 1:1 associada): Consells personalitzats generats pel motor d'IA en base a les sensacions del registre diari.
 
 ---
 
@@ -72,15 +76,20 @@ A continuació, es resumeix el treball implementat fitxer a fitxer:
 
 ### C. Formulari i Vistes CRUD (Backend Django)
 * **[forms.py](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/forms.py)**: Defineix els formularis enllaçats als models amb classes CSS de control i widgets de data HTML5.
-  * *Optimització de rendiment*: En el formulari de sessions d'entrenament, limitem els exercicis seleccionables als creats per l'atleta escollit (o als 100 primers si es crea en blanc). Això evita carregar 200.000 files a la vegada i col·lapsar la memòria del navegador.
+  * *Optimització de rendiment*: En el formulari de sessions d'entrenament, limitem els exercicis seleccionables als creats per l'atleta escollit.
+  * *Formulari de Registre Diari*: S'incorpora `RegistreDiariForm` per permetre la introducció de mètriques de son, energia, estrès, adaptabilitat a la dieta i comentaris generals.
 * **[views.py](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/views.py)**: Class-Based Views per a listats, edició, borrat, creació i detalls dels atletes, lesions, sessions i valoracions.
-  * *ID de lesió automàtic*: En la creació de lesions, el sistema obté automàticament el màxim `id_lesio` de l'atleta seleccionat en base de dades i s'incrementa en 1, de manera que l'atleta no ha d'introduir-lo a mà.
+  * *ID de lesió automàtic*: En la creació de lesions, el sistema obté el màxim `id_lesio` de l'atleta a la BD i s'incrementa en 1 de forma automàtica.
+  * *Borrat Directe*: S'ha sobreescrit `AtletaDeleteView` per admetre peticions GET directes ja confirmades per JavaScript, evitant errors de plantilla inexistent.
+  * *Generació Automàtica d'Informe IA*: A la vista `RegistreDiariCreateView`, en desar les sensacions diàries, un algorisme de recomanacions evalua l'adherència a la dieta, son, estrès i energia, i genera de forma immediata un registre d'**`InformeIA`** de son, nutrició i entrenament per a l'atleta.
+  * *Detall d'Informe IA*: S'implementa `InformeIADetailView` per consultar la valoració generada per l'IA de manera individual.
 
 ### D. Interfície d'Usuari (Templates i Estils)
-* **[urls.py](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/urls.py)**: Enrutament de totes les accions web de l'aplicació.
+* **[urls.py](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/urls.py)**: Enrutament de totes les accions web, incloent les noves rutes `/atletes/<dni>/registre-diari/nou/` i `/informe-ia/<registre_id>/`.
 * **[styles.css](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/static/core/styles.css)**: Paleta de color fosca responsiva amb estil fosc elegant, barra lateral, indicadors d'estat i disseny premium.
 * **HTML Templates**:
   * [base.html](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/templates/core/base.html): Estructura compartida, sidebar i CDNs.
   * [dashboard.html](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/templates/core/dashboard.html): Mètriques agregades de sessions, opinions, lesions actives i llista d'activitat recent.
-  * Vistes de llistat i perfils de detall d'atletes amb tot el seu històric.
-  * Formulari de valoració de llocs d'entrenament amb missatges d'explicació de les validacions (RI-1).
+  * [atleta_detail.html](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/templates/core/atleta_detail.html): S'hi afegeix el panell **"Registres Diaris i Consells IA"** amb un historial visualitzable de mètriques i botons per consultar cadascun dels consells generats per l'IA.
+  * [registre_diari_form.html](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/templates/core/registre_diari_form.html): Formulari intuïtiu per a l'atleta amb explicacions visuals de la generació d'informes.
+  * [informe_ia_detail.html](file:///Users/hugohf05/Q6/DABD/LAB/proyecte/goup_ai/core/templates/core/informe_ia_detail.html): Pantalla de disseny premium que divideix els consells d'IA en tres pilars (Entrenament, Nutrició, Son) integrant targetes individuals i gràfics informatius basats en les dades inserides.

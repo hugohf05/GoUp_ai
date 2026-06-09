@@ -1,0 +1,134 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Registrar Sensacions Diàries - GoUp AI{% endblock %}
+
+{% block page_title %}Registrar Sensacions Diàries{% endblock %}
+{% block page_subtitle %}Introdueix les teves mètriques de benestar per rebre l'informe d'optimització recomanat per l'IA.{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 650px; margin: 0 auto;">
+  
+  <!-- AI Notification Box -->
+  <div style="padding: 1rem; border-radius: var(--radius-md); background: rgba(168, 85, 247, 0.06); border: 1px solid rgba(168, 85, 247, 0.2); margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: start;">
+    <i data-lucide="brain-circuit" style="color: #a855f7; flex-shrink: 0; width: 22px; height: 22px;"></i>
+    <div style="font-size: 0.825rem; color: var(--text-secondary);">
+      <strong style="color: var(--text-primary);">Generació d'Informe IA Activa:</strong>
+      En desar aquest formulari, el motor d'intel·ligència artificial analitzarà dinàmicament el teu nivell d'estrès, son, energia i nutrició per emetre consells personalitzats de manera immediata.
+    </div>
+  </div>
+
+  <form method="POST" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        <i data-lucide="alert-octagon"></i>
+        <div>
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+      
+      <!-- Atleta Selection (read-only/hidden if pre-selected) -->
+      <div class="form-group" style="grid-column: span 2;">
+        <label class="form-label">Atleta</label>
+        {% if athlete %}
+          <input type="text" value="{{ athlete.nom }} ({{ athlete.dni_atleta }})" class="form-control" disabled style="opacity: 0.7; cursor: not-allowed; background: rgba(255,255,255,0.02);">
+          <input type="hidden" name="atleta" value="{{ athlete.dni_atleta }}">
+        {% else %}
+          {{ form.atleta }}
+        {% endif %}
+        {% if form.atleta.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.atleta.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Data Field -->
+      <div class="form-group" style="grid-column: span 2;">
+        <label for="{{ form.data.id_for_label }}" class="form-label">Data del registre</label>
+        {{ form.data }}
+        {% if form.data.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.data.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Energia Field -->
+      <div class="form-group">
+        <label for="{{ form.nivell_energia.id_for_label }}" class="form-label">Nivell d'energia (0.0 - 5.0)</label>
+        {{ form.nivell_energia }}
+        {% if form.nivell_energia.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.nivell_energia.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Mesura la teva vitalitat general d'avui.</span>
+      </div>
+
+      <!-- Estrès Field -->
+      <div class="form-group">
+        <label for="{{ form.nivell_estres.id_for_label }}" class="form-label">Nivell d'estrès (0.0 - 5.0)</label>
+        {{ form.nivell_estres }}
+        {% if form.nivell_estres.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.nivell_estres.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Estrès físic o mental acumulat.</span>
+      </div>
+
+      <!-- Recuperacio Field -->
+      <div class="form-group">
+        <label for="{{ form.estat_recuperacio_descans.id_for_label }}" class="form-label">Recuperació del son (0.0 - 5.0)</label>
+        {{ form.estat_recuperacio_descans }}
+        {% if form.estat_recuperacio_descans.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.estat_recuperacio_descans.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Sensació de frescor al despertar.</span>
+      </div>
+
+      <!-- Adaptabilitat Alimentacio Field -->
+      <div class="form-group">
+        <label for="{{ form.adaptabilitat_alimentacio.id_for_label }}" class="form-label">Adherència Dieta (0 - 100%)</label>
+        {{ form.adaptabilitat_alimentacio }}
+        {% if form.adaptabilitat_alimentacio.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.adaptabilitat_alimentacio.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Percentatge de compliment de la pauta.</span>
+      </div>
+
+      <!-- Comentaris Entrenaments Field -->
+      <div class="form-group" style="grid-column: span 2;">
+        <label for="{{ form.comentaris_entrenaments.id_for_label }}" class="form-label">Comentaris d'entrenament</label>
+        {{ form.comentaris_entrenaments }}
+        {% if form.comentaris_entrenaments.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.comentaris_entrenaments.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Opcional. Notes sobre les sessions o incidències de l'entrenament de la jornada.</span>
+      </div>
+
+      <!-- Sensacions Generals Field -->
+      <div class="form-group" style="grid-column: span 2;">
+        <label for="{{ form.sensacions_generals.id_for_label }}" class="form-label">Sensacions Generals</label>
+        {{ form.sensacions_generals }}
+        {% if form.sensacions_generals.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.sensacions_generals.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Opcional. Estat d'ànim, possibles molèsties musculars, cansament...</span>
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+      {% if athlete %}
+        <a href="{% url 'atleta_detail' athlete.dni_atleta %}" class="btn btn-secondary">Cancel·lar</a>
+      {% else %}
+        <a href="{% url 'atleta_list' %}" class="btn btn-secondary">Cancel·lar</a>
+      {% endif %}
+      <button type="submit" class="btn btn-primary" style="background: var(--primary-gradient); border: none;">
+        <i data-lucide="brain"></i> Generar Anàlisi IA
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -496,3 +496,54 @@ button, input, select, textarea {
     grid-column: span 1;
   }
 }
+
+/* Select2 Dark Mode Global Overrides */
+.select2-container .select2-selection--single,
+.select2-container .select2-selection--multiple {
+  background-color: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--text-primary) !important;
+}
+.select2-container .select2-selection--single {
+  height: 38px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: 36px !important;
+  color: var(--text-primary) !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow b {
+  border-color: var(--text-muted) transparent transparent transparent !important;
+}
+.select2-dropdown {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+.select2-container--default .select2-results__option--selected {
+  background-color: var(--surface-card) !important;
+}
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+}
+.select2-search__field {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: var(--radius-sm) !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  background-color: var(--surface-card) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  border-radius: var(--radius-sm) !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  color: var(--danger) !important;
+  margin-right: 5px !important;
+}
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+  background-color: transparent !important;
+  color: #dc2626 !important;
+}

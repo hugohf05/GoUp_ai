@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy, reverse
@@ -6,8 +7,8 @@ from django.db.models import Q, Avg, Count
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 
-from .models import Atleta, Lesio, SessioEntrenament, Valoracio, Ubicacio, EstatActual, EstatAtleta, Exercici
-from .forms import AtletaForm, LesioForm, SessioForm, ValoracioForm
+from .models import Atleta, Lesio, SessioEntrenament, Valoracio, Ubicacio, EstatActual, EstatAtleta, Exercici, RegistreDiari, InformeIA, Forca, Resistencia
+from .forms import AtletaForm, LesioForm, SessioForm, ValoracioForm, RegistreDiariForm, ExerciciForm
 
 # --------------------------------------------------------------------------
 # 1. DASHBOARD VIEW
@@ -119,6 +120,10 @@ class AtletaDeleteView(DeleteView):
     model = Atleta
     pk_url_kwarg = 'dni'
     success_url = reverse_lazy('atleta_list')
+
+    def get(self, request, *args, **kwargs):
+        # Permetre eliminació directa mitjançant GET ja que es confirma via JS
+        return self.post(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         atleta = self.get_object()
@@ -262,7 +267,7 @@ class SessioCreateView(CreateView):
         initial = super().get_initial()
         dni = self.request.GET.get('atleta')
         if dni:
-            initial['atleta'] = get_object_or_4000(Atleta, dni_atleta=dni)
+            initial['atleta'] = get_object_or_404(Atleta, dni_atleta=dni)
         return initial
 
     def get_form_kwargs(self):
@@ -282,7 +287,7 @@ class SessioCreateView(CreateView):
         
         dni = self.request.GET.get('atleta')
         if dni:
-            context['fixed_atleta'] = get_object_or_4000(Atleta, dni_atleta=dni)
+            context['fixed_atleta'] = get_object_or_404(Atleta, dni_atleta=dni)
         return context
 
     def form_valid(self, form):
@@ -341,7 +346,7 @@ class ValoracioCreateView(CreateView):
         initial = super().get_initial()
         ub_id = self.request.GET.get('ubicacio')
         if ub_id:
-            initial['ubicacio'] = get_object_or_4000(Ubicacio, id=ub_id)
+            initial['ubicacio'] = get_object_or_404(Ubicacio, id=ub_id)
         return initial
 
     def get_context_data(self, **kwargs):
@@ -350,7 +355,7 @@ class ValoracioCreateView(CreateView):
         
         ub_id = self.request.GET.get('ubicacio')
         if ub_id:
-            context['fixed_ubicacio'] = get_object_or_4000(Ubicacio, id=ub_id)
+            context['fixed_ubicacio'] = get_object_or_404(Ubicacio, id=ub_id)
         return context
 
     def form_valid(self, form):
@@ -367,3 +372,192 @@ class ValoracioCreateView(CreateView):
                 for error in errors:
                     form.add_error(field, error)
             return self.form_invalid(form)
+
+
+# --------------------------------------------------------------------------
+# 6. REGISTRES DIARIS & INFORME IA VIEWS
+# --------------------------------------------------------------------------
+class RegistreDiariCreateView(CreateView):
+    model = RegistreDiari
+    form_class = RegistreDiariForm
+    template_name = 'core/registre_diari_form.html'
+
+    def get_initial(self):
+        initial = super().get_initial()
+        dni = self.kwargs.get('dni')
+        if dni:
+            atleta = get_object_or_404(Atleta, dni_atleta=dni)
+            initial['atleta'] = atleta
+        initial['data'] = date.today()
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'atletes'
+        dni = self.kwargs.get('dni')
+        if dni:
+            context['athlete'] = get_object_or_404(Atleta, dni_atleta=dni)
+        return context
+
+    def form_valid(self, form):
+        registre = form.save(commit=False)
+        # Sincronització de l'atleta des de la URL per seguretat
+        dni = self.kwargs.get('dni')
+        if dni:
+            registre.atleta = get_object_or_404(Atleta, dni_atleta=dni)
+        
+        try:
+            registre.full_clean()
+            registre.save()
+        except ValidationError as e:
+            for field, errors in e.message_dict.items():
+                for error in errors:
+                    form.add_error(field, error)
+            return self.form_invalid(form)
+
+        # Generar InformeIA de forma automatitzada
+        energia = float(registre.nivell_energia)
+        estres = float(registre.nivell_estres)
+        recuperacio = float(registre.estat_recuperacio_descans)
+        nutricio = float(registre.adaptabilitat_alimentacio)
+
+        # 1. Recomanació d'entrenament
+        if energia >= 4.0 and estres < 2.5:
+            rec_entrenament = (
+                "Nivell d'energia excel·lent i baix estrès. Avui és un dia ideal per a una sessió de "
+                "potència, sèries d'alta intensitat o una tirada de gran volum. El teu cos està "
+                "completament preparat per absorbir estímuls elevats d'entrenament."
+            )
+        elif energia <= 2.0 or estres >= 4.0:
+            rec_entrenament = (
+                "Energia significativament baixa o nivell d'estrès molt elevat. Es desaconsella "
+                "qualsevol treball d'alta intensitat o força màxima per evitar el sobreentrenament o "
+                "lesions. Opta per una sessió molt suau de recuperació activa (ioga, estiraments, "
+                "mobilitat de baix impacte) o directament descans complet."
+            )
+        else:
+            rec_entrenament = (
+                "Estat de vitalitat moderat. Recomanem un entrenament de manteniment a intensitat controlada. "
+                "Centra't en la tècnica dels exercicis i evita arribar a l'error muscular. Escolta el teu cos "
+                "durant l'escalfament i modula les càrregues en conseqüència."
+            )
+
+        # 2. Recomanació d'alimentació
+        if nutricio >= 85.0:
+            rec_alimentacio = (
+                f"Adherència excel·lent a la teva planificació nutricional ({nutricio}%). Mantingues "
+                "aquest patró d'àpats. Assegura't de cobrir la ingesta de líquids necessària, afegint "
+                "electròlits si realitzes entrenaments de més de 90 minuts."
+            )
+        elif nutricio < 70.0:
+            rec_alimentacio = (
+                f"L'adherència dietètica avui ha estat baixa ({nutricio}%). Per compensar i donar suport "
+                "a la recuperació cel·lular, prioritza en els propers àpats fonts de proteïna magra "
+                "(gall dindi, peix o tofu) i carbohidrats complexos de fàcil digestió. Redueix totalment "
+                "els ultraprocessats i greixos saturats."
+            )
+        else:
+            rec_alimentacio = (
+                f"Bona adherència a la dieta ({nutricio}%). Intenta planificar millor el 'timing' dels "
+                "nutrients abans i després de la sessió. Augmenta la ingesta de carbohidrats d'index "
+                "glucèmic mitjà per reposar completament el glucogen muscular."
+            )
+
+        # 3. Recomanació de descans
+        if recuperacio >= 4.0:
+            rec_descans = (
+                "Estat de recuperació nocturna excel·lent. El son ha estat profund i reparador. "
+                "El teu sistema nerviós autònom es troba en un perfecte equilibri simpàtic-parasimpàtic. "
+                "Continua mantenint la mateixa rutina d'higiene del son."
+            )
+        elif recuperacio <= 2.5:
+            rec_descans = (
+                "Valors de recuperació i descans per sota de la mitjana. S'observa una possible falta "
+                "de son profund o acumulació de fatiga. Prioritza avui anar a dormir més d'hora del que "
+                "és habitual, evita l'ús de pantalles o dispositius electrònics almenys 60 minuts abans d'adormir-te "
+                "i considera fer una migdiada reparadora d'uns 20 minuts al migdia."
+            )
+        else:
+            rec_descans = (
+                "Nivell de recuperació mitjà. L'organisme està recuperant-se de forma progressiva. "
+                "Evita sopars copiosos o molt tardans i mantingues la teva habitació a una temperatura fresca "
+                "per afavorir una millor qualitat de descans durant la nit."
+            )
+
+        InformeIA.objects.create(
+            registre_diari=registre,
+            recomanacio_entrenament=rec_entrenament,
+            recomanacio_alimentacio=rec_alimentacio,
+            recomanacio_descans=rec_descans
+        )
+
+        messages.success(self.request, "S'ha registrat el teu estat diari i l'IA ha generat un nou informe de recomanacions.")
+        return redirect('atleta_detail', dni=registre.atleta.dni_atleta)
+
+
+class InformeIADetailView(DetailView):
+    model = InformeIA
+    template_name = 'core/informe_ia_detail.html'
+    context_object_name = 'informe'
+
+    def get_object(self, queryset=None):
+        registre_id = self.kwargs.get('registre_id')
+        return get_object_or_404(InformeIA, registre_diari_id=registre_id)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'atletes'
+        return context
+
+# --------------------------------------------------------------------------
+# Exercici Views
+# --------------------------------------------------------------------------
+from django.db import transaction
+from django.http import HttpResponseBadRequest
+
+class ExerciciCreateView(CreateView):
+    model = Exercici
+    form_class = ExerciciForm
+    template_name = 'core/exercici_form.html'
+    success_url = reverse_lazy('dashboard')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'exercicis'
+        return context
+
+    @transaction.atomic
+    def form_valid(self, form):
+        self.object = form.save()
+        
+        series_data_str = self.request.POST.get('series_data', '[]')
+        try:
+            series_data = json.loads(series_data_str)
+        except json.JSONDecodeError:
+            return HttpResponseBadRequest("Invalid JSON data for series")
+            
+        num_serie = 1
+        for s in series_data:
+            tipus = s.get('tipus')
+            if tipus == 'forca':
+                Forca.objects.create(
+                    exercici=self.object,
+                    num_serie=num_serie,
+                    grup_muscular=s.get('grup_muscular', ''),
+                    pes=s.get('pes', 0) if s.get('pes') else 0,
+                    rpe=s.get('rpe', 0) if s.get('rpe') else 0
+                )
+            elif tipus == 'resistencia':
+                Resistencia.objects.create(
+                    exercici=self.object,
+                    num_serie=num_serie,
+                    duracio=s.get('duracio', '00:00:00'),
+                    tipus_superficie=s.get('tipus_superficie', ''),
+                    distancia=s.get('distancia', 0) if s.get('distancia') else 0,
+                    desnivell=s.get('desnivell') or None,
+                    freq_cardiaca_mitjana=s.get('freq_cardiaca_mitjana', 0) if s.get('freq_cardiaca_mitjana') else 0
+                )
+            num_serie += 1
+            
+        messages.success(self.request, f"L'exercici '{self.object.nom}' i les seves {num_serie - 1} sèries s'han desat correctament.")
+        return super().form_valid(form)

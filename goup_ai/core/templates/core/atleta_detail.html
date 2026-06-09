@@ -219,6 +219,73 @@
         </table>
       </div>
     </div>
+
+    <!-- Registres Diaris i Informes IA Panel -->
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="brain" style="color: #a855f7;"></i> Registres Diaris i Consells IA
+        </h3>
+        <a href="{% url 'registre_diari_create' athlete.dni_atleta %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; border-color: rgba(168, 85, 247, 0.3); color: #c084fc;">
+          <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Registrar Sensacions
+        </a>
+      </div>
+
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Energia</th>
+              <th>Estrès</th>
+              <th>Recuperació</th>
+              <th>Nutrició</th>
+              <th style="text-align: right;">Acció</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for registre in athlete.registres.all|dictsortreversed:"data"|slice:":10" %}
+              <tr>
+                <td style="font-weight: 600;">{{ registre.data|date:"d/m/Y" }}</td>
+                <td>
+                  <span style="font-weight: 600; color: {% if registre.nivell_energia >= 4.0 %}var(--success){% elif registre.nivell_energia >= 2.5 %}var(--warning){% else %}var(--danger){% endif %};">
+                    {{ registre.nivell_energia }}/5.0
+                  </span>
+                </td>
+                <td>
+                  <span style="font-weight: 600; color: {% if registre.nivell_estres >= 4.0 %}var(--danger){% elif registre.nivell_estres >= 2.5 %}var(--warning){% else %}var(--success){% endif %};">
+                    {{ registre.nivell_estres }}/5.0
+                  </span>
+                </td>
+                <td>
+                  <span style="font-weight: 600; color: {% if registre.estat_recuperacio_descans >= 4.0 %}var(--success){% elif registre.estat_recuperacio_descans >= 2.5 %}var(--warning){% else %}var(--danger){% endif %};">
+                    {{ registre.estat_recuperacio_descans }}/5.0
+                  </span>
+                </td>
+                <td>
+                  <span style="font-weight: 600; color: {% if registre.adaptabilitat_alimentacio >= 85.0 %}var(--success){% elif registre.adaptabilitat_alimentacio >= 70.0 %}var(--warning){% else %}var(--danger){% endif %};">
+                    {{ registre.adaptabilitat_alimentacio|floatformat:"0" }}%
+                  </span>
+                </td>
+                <td style="text-align: right;">
+                  {% if registre.informeIA %}
+                    <a href="{% url 'informe_ia_detail' registre.id %}" class="btn btn-secondary" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+                      <i data-lucide="eye" style="width: 12px; height: 12px;"></i> Veure Consells IA
+                    </a>
+                  {% else %}
+                    <span style="color: var(--text-muted); font-size: 0.8rem;">Sense consells</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No s'han trobat registres diaris per a aquest atleta.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
 </div>

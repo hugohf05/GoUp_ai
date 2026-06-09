@@ -1,0 +1,291 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Nou Exercici - GoUp AI{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .series-card {
+        border-left: 4px solid #4f46e5;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .series-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .btn-gradient {
+        background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+        color: white;
+        border: none;
+    }
+    .btn-gradient:hover {
+        background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div style="display: flex; align-items: center; margin-bottom: 2rem; gap: 1rem;">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> Tornar
+                </a>
+                <h2 style="margin: 0; font-size: 1.85rem; font-weight: 700;">Crear Nou Exercici</h2>
+            </div>
+
+            <form method="post" id="exerciciForm">
+                {% csrf_token %}
+                <input type="hidden" name="series_data" id="seriesDataInput" value="[]">
+
+                <!-- 1. Dades Bàsiques de l'Exercici -->
+                <div class="card mb-5" style="margin-bottom: 3.5rem !important;">
+                    <div class="card-body">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                            <i data-lucide="info" style="width: 20px; height: 20px; color: var(--primary);"></i>
+                            <h4 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">Dades Bàsiques</h4>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Atleta</label>
+                                {{ form.atleta }}
+                                {% if form.atleta.errors %}
+                                <div class="text-danger small mt-1">{{ form.atleta.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nom de l'Exercici</label>
+                                {{ form.nom }}
+                                {% if form.nom.errors %}
+                                <div class="text-danger small mt-1">{{ form.nom.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Descripció (Opcional)</label>
+                                {{ form.descripcio }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Descans entre sèries (HH:MM:SS)</label>
+                                {{ form.descans_entre_series }}
+                                <div class="form-text">Deixa en blanc si no aplica. Exemple: 00:01:30</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Constructor de Sèries Dinàmic -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i data-lucide="layers" style="width: 20px; height: 20px; color: var(--primary);"></i>
+                                <h4 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-primary);">Sèries de l'Exercici</h4>
+                            </div>
+                            
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <div style="position: relative; min-width: 180px;">
+                                    <select id="tipusSerieSelect" class="form-control" style="appearance: none; padding-right: 2.5rem; cursor: pointer;">
+                                        <option value="" disabled selected>Tipus de Sèrie...</option>
+                                        <option value="forca">Força</option>
+                                        <option value="resistencia">Resistència</option>
+                                    </select>
+                                    <i data-lucide="chevron-down" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted); pointer-events: none;"></i>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="afegirSerie()" style="padding: 0.6rem 1rem;">
+                                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Afegir Sèrie
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Llista on s'injectaran les sèries via JS -->
+                        <div id="seriesContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div id="emptySeriesMsg" style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+                                <i data-lucide="inbox" style="width: 48px; height: 48px; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                <p style="margin: 0; font-size: 0.95rem;">Encara no has afegit cap sèrie. Tria un tipus i fes clic a 'Afegir Sèrie'.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 3rem;">
+                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
+                        <i data-lucide="save" style="width: 18px; height: 18px;"></i> Desar Exercici
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Plantilles HTML ocultes per a Javascript -->
+<template id="templateForca">
+    <div class="card series-card mb-0 shadow-sm" style="padding: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h6 style="margin: 0; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                Sèrie <span class="badge serie-badge" style="background: var(--primary-gradient); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; justify-content: center; align-items: center; padding: 0;">#</span> de Força
+            </h6>
+            <button type="button" class="btn btn-danger remove-serie-btn" style="padding: 0.4rem; border-radius: 50%;" title="Eliminar Sèrie">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+            </button>
+        </div>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">Grup Muscular</label>
+                    <input type="text" class="form-control form-control-sm" data-field="grup_muscular" placeholder="Ex: Pectoral">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">Pes (kg)</label>
+                    <input type="number" step="0.01" class="form-control form-control-sm" data-field="pes" placeholder="0.00">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">RPE (0-10)</label>
+                    <input type="number" min="0" max="10" class="form-control form-control-sm" data-field="rpe" placeholder="Esforç percebut">
+                </div>
+            </div>
+    </div>
+</template>
+
+<template id="templateResistencia">
+    <div class="card series-card mb-0 shadow-sm" style="padding: 1.25rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h6 style="margin: 0; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+                Sèrie <span class="badge serie-badge" style="background: var(--primary-gradient); color: white; border-radius: 50%; width: 24px; height: 24px; display: inline-flex; justify-content: center; align-items: center; padding: 0;">#</span> de Resistència
+            </h6>
+            <button type="button" class="btn btn-danger remove-serie-btn" style="padding: 0.4rem; border-radius: 50%;" title="Eliminar Sèrie">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+            </button>
+        </div>
+            <div class="row g-2">
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">Duració (HH:MM:SS)</label>
+                    <input type="time" step="1" class="form-control form-control-sm" data-field="duracio" placeholder="00:00:00">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">Distància (km)</label>
+                    <input type="number" step="0.01" class="form-control form-control-sm" data-field="distancia" placeholder="0.00">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">Superfície</label>
+                    <div style="position: relative;">
+                        <select class="form-control form-control-sm" data-field="tipus_superficie" style="appearance: none; padding-right: 2rem;">
+                            <option value="ASFALT">Asfalt</option>
+                            <option value="CINTA">Cinta</option>
+                            <option value="TRAIL">Trail</option>
+                        </select>
+                        <i data-lucide="chevron-down" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-muted); pointer-events: none;"></i>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">Desnivell (m)</label>
+                    <input type="number" step="0.01" class="form-control form-control-sm" data-field="desnivell" placeholder="Opcional">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small mb-1">Freq. Cardíaca Mitjana</label>
+                    <input type="number" step="1" class="form-control form-control-sm" data-field="freq_cardiaca_mitjana" placeholder="bpm">
+                </div>
+        </div>
+    </div>
+</template>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    // Inicialització de Select2
+    $(document).ready(function() {
+        $('.select2').select2({
+            theme: "classic",
+            width: '100%',
+            placeholder: "Cerca un atleta..."
+        });
+    });
+
+    // Lògica per crear Sèries
+    const seriesContainer = document.getElementById('seriesContainer');
+    const emptyMsg = document.getElementById('emptySeriesMsg');
+    const form = document.getElementById('exerciciForm');
+    const seriesDataInput = document.getElementById('seriesDataInput');
+    
+    let seriesList = [];
+
+    function updateUI() {
+        if (seriesList.length > 0) {
+            emptyMsg.style.display = 'none';
+            document.getElementById('tipusSerieSelect').disabled = true;
+        } else {
+            emptyMsg.style.display = 'block';
+            document.getElementById('tipusSerieSelect').disabled = false;
+        }
+        
+        // Actualitzar els badges (número de sèrie)
+        const badges = seriesContainer.querySelectorAll('.serie-badge');
+        badges.forEach((badge, index) => {
+            badge.textContent = index + 1;
+        });
+    }
+
+    function afegirSerie() {
+        const tipusSelect = document.getElementById('tipusSerieSelect');
+        const tipus = tipusSelect.value;
+        if (!tipus) {
+            alert("Si us plau, selecciona primer si vols una sèrie de Força o Resistència.");
+            return;
+        }
+
+        // Crear objecte dades
+        const serieObj = {
+            id: Date.now().toString(), // id temporal per UI
+            tipus: tipus
+        };
+        seriesList.push(serieObj);
+
+        // Clonar template
+        const templateId = tipus === 'forca' ? 'templateForca' : 'templateResistencia';
+        const template = document.getElementById(templateId);
+        const node = template.content.cloneNode(true);
+        const cardElement = node.querySelector('.series-card');
+        
+        cardElement.dataset.id = serieObj.id;
+
+        // Botó eliminar
+        const removeBtn = cardElement.querySelector('.remove-serie-btn');
+        removeBtn.addEventListener('click', function() {
+            cardElement.remove();
+            seriesList = seriesList.filter(s => s.id !== serieObj.id);
+            updateUI();
+        });
+
+        seriesContainer.appendChild(node);
+        lucide.createIcons();
+        updateUI();
+    }
+
+    // Abans d'enviar el formulari, serialitzar dades
+    form.addEventListener('submit', function(e) {
+        // Recollir dades de cada DOM element associat a una sèrie
+        const items = seriesContainer.querySelectorAll('.series-card');
+        const finalData = [];
+
+        items.forEach(item => {
+            const id = item.dataset.id;
+            const refObj = seriesList.find(s => s.id === id);
+            if(refObj) {
+                const data = { tipus: refObj.tipus };
+                const inputs = item.querySelectorAll('[data-field]');
+                inputs.forEach(input => {
+                    data[input.dataset.field] = input.value;
+                });
+                finalData.push(data);
+            }
+        });
+
+        seriesDataInput.value = JSON.stringify(finalData);
+    });
+</script>
+{% endblock %}

@@ -56,9 +56,14 @@
   <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
       <h2 style="font-size: 1.15rem; font-weight: 700;">Últimes Sessions Registrades</h2>
-      <a href="{% url 'sessio_create' %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
-        <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Nova Sessió
-      </a>
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="{% url 'exercici_create' %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+          <i data-lucide="dumbbell" style="width: 14px; height: 14px;"></i> Nou Exercici i Sèries
+        </a>
+        <a href="{% url 'sessio_create' %}" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+          <i data-lucide="plus" style="width: 14px; height: 14px;"></i> Nova Sessió
+        </a>
+      </div>
     </div>
     
     <div class="table-container">
