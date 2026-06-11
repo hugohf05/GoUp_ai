@@ -1,5 +1,5 @@
 from django import forms
-from .models import Atleta, Lesio, SessioEntrenament, Valoracio, Exercici, RegistreDiari
+from .models import Atleta, Lesio, SessioEntrenament, Valoracio, Exercici, RegistreDiari, Alimentacio
 
 class AtletaForm(forms.ModelForm):
     class Meta:
@@ -112,6 +112,20 @@ class RegistreDiariForm(forms.ModelForm):
             'nivell_energia': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0.0', 'max': '5.0', 'placeholder': '0.0 - 5.0'}),
             'nivell_estres': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.1', 'min': '0.0', 'max': '5.0', 'placeholder': '0.0 - 5.0'}),
             'sensacions_generals': forms.Textarea(attrs={'class': 'form-control', 'rows': '3', 'placeholder': 'Sensacions generals, dolors, fatiga...'}),
+        }
+
+
+class AlimentacioForm(forms.ModelForm):
+    class Meta:
+        model = Alimentacio
+        fields = ['tipus_alimentacio', 'calories', 'proteina', 'carbohidrats', 'grases', 'suplementacio']
+        widgets = {
+            'tipus_alimentacio': forms.Select(attrs={'class': 'form-control select2'}),
+            'calories': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Ex: 2500'}),
+            'proteina': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Ex: 150'}),
+            'carbohidrats': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Ex: 300'}),
+            'grases': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'placeholder': 'Ex: 80'}),
+            'suplementacio': forms.Textarea(attrs={'class': 'form-control', 'rows': '3', 'placeholder': 'Llistat de suplements (Whey, Creatina, etc.)'}),
         }
 
 

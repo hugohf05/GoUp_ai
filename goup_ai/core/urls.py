@@ -3,6 +3,7 @@ from .views import (
     DashboardView, DashboardDataView,
     AtletaListView, AtletaDetailView, AtletaCreateView, AtletaUpdateView, AtletaDeleteView,
     LesioListView, LesioCreateView, LesioUpdateView,
+    AlimentacioCreateView, AlimentacioUpdateView,
     SessioListView, SessioCreateView,
     UbicacioListView, ValoracioCreateView,
     RegistreDiariCreateView, InformeIADetailView, ExerciciCreateView
@@ -25,6 +26,10 @@ urlpatterns = [
     path("lesions/nova/", LesioCreateView.as_view(), name="lesio_create"),
     path("lesions/<str:dni>/<int:id_lesio>/editar/", LesioUpdateView.as_view(), name="lesio_update"),
     
+    # Alimentacio CRUD
+    path("atletes/<str:dni>/alimentacio/nova/", AlimentacioCreateView.as_view(), name="alimentacio_create"),
+    path("atletes/<str:dni>/alimentacio/editar/", AlimentacioUpdateView.as_view(), name="alimentacio_update"),
+
     # Sessions d'Entrenament CRUD
     path("sessions/", SessioListView.as_view(), name="sessio_list"),
     path("sessions/nova/", SessioCreateView.as_view(), name="sessio_create"),

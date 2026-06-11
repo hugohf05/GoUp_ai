@@ -7,8 +7,8 @@ from django.db.models import Q, Avg, Count
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 
-from .models import Atleta, Lesio, SessioEntrenament, Valoracio, Ubicacio, EstatActual, EstatAtleta, Exercici, RegistreDiari, InformeIA, Forca, Resistencia
-from .forms import AtletaForm, LesioForm, SessioForm, ValoracioForm, RegistreDiariForm, ExerciciForm
+from .models import Atleta, Lesio, SessioEntrenament, Valoracio, Ubicacio, EstatActual, EstatAtleta, Exercici, RegistreDiari, InformeIA, Forca, Resistencia, Alimentacio
+from .forms import AtletaForm, LesioForm, SessioForm, ValoracioForm, RegistreDiariForm, ExerciciForm, AlimentacioForm
 
 # --------------------------------------------------------------------------
 # 1. DASHBOARD VIEW
@@ -273,7 +273,57 @@ class LesioUpdateView(UpdateView):
 
 
 # --------------------------------------------------------------------------
-# 4. SESSIOENTRENAMENT CRUD VIEWS
+# 4. ALIMENTACIO CRUD VIEWS
+# --------------------------------------------------------------------------
+class AlimentacioCreateView(CreateView):
+    model = Alimentacio
+    form_class = AlimentacioForm
+    template_name = 'core/alimentacio_form.html'
+
+    def get_success_url(self):
+        return reverse('atleta_detail', kwargs={'dni': self.kwargs['dni']})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'alimentacio'
+        context['is_edit'] = False
+        context['fixed_atleta'] = get_object_or_404(Atleta, dni_atleta=self.kwargs['dni'])
+        return context
+
+    def form_valid(self, form):
+        alimentacio = form.save(commit=False)
+        atleta = get_object_or_404(Atleta, dni_atleta=self.kwargs['dni'])
+        alimentacio.atleta = atleta
+        alimentacio.save()
+        messages.success(self.request, f"S'ha creat la pauta d'alimentació per a {atleta.nom}.")
+        return redirect(self.get_success_url())
+
+class AlimentacioUpdateView(UpdateView):
+    model = Alimentacio
+    form_class = AlimentacioForm
+    template_name = 'core/alimentacio_form.html'
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(Alimentacio, atleta__dni_atleta=self.kwargs['dni'])
+
+    def get_success_url(self):
+        return reverse('atleta_detail', kwargs={'dni': self.kwargs['dni']})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'alimentacio'
+        context['is_edit'] = True
+        context['fixed_atleta'] = get_object_or_404(Atleta, dni_atleta=self.kwargs['dni'])
+        return context
+
+    def form_valid(self, form):
+        alimentacio = form.save()
+        messages.success(self.request, f"S'ha actualitzat la pauta d'alimentació de {alimentacio.atleta.nom}.")
+        return redirect(self.get_success_url())
+
+
+# --------------------------------------------------------------------------
+# 5. SESSIOENTRENAMENT CRUD VIEWS
 # --------------------------------------------------------------------------
 class SessioListView(ListView):
     model = SessioEntrenament

@@ -6,7 +6,10 @@
 {% block page_subtitle %}{% if is_edit %}Actualitzeu els detalls de l'atleta {{ form.instance.nom }}{% else %}Introduïu les dades de l'atleta per registrar-lo al sistema{% endif %}{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 800px; margin: 0 auto;">
+<div style="max-width: {% if is_edit %}1200px{% else %}800px{% endif %}; margin: 0 auto; {% if is_edit %}display: grid; grid-template-columns: 1.8fr 1fr; gap: 2rem; align-items: start;{% endif %}">
+  
+  <!-- Form Column -->
+  <div class="card" style="margin: 0;">
   <form method="POST" novalidate>
     {% csrf_token %}
     
@@ -137,5 +140,69 @@
       </button>
     </div>
   </form>
-</div>
+  </div> <!-- /Form Column -->
+
+  <!-- Diet Column -->
+  {% if is_edit %}
+  <div style="display: flex; flex-direction: column; gap: 2rem;">
+    <!-- Diet / Alimentacio Card from Detail View -->
+    {% if form.instance.alimentacio %}
+      <div class="card" style="margin: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+          <h3 style="font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0;">
+            <i data-lucide="apple" style="color: var(--secondary);"></i> Pauta d'Alimentació
+          </h3>
+          <a href="{% url 'alimentacio_update' form.instance.dni_atleta %}" class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.8rem;">
+            <i data-lucide="edit" style="width: 14px; height: 14px;"></i> Editar Pauta
+          </a>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.25rem;">
+          <div style="background: rgba(255, 255, 255, 0.02); padding: 0.75rem; border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Calories</div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary);">{{ form.instance.alimentacio.calories }} <span style="font-size: 0.7rem; color: var(--text-secondary);">kcal</span></div>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.02); padding: 0.75rem; border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">Tipus Dieta</div>
+            <div style="font-size: 0.95rem; font-weight: 700; margin-top: 0.2rem; color: var(--secondary);">{{ form.instance.alimentacio.get_tipus_alimentacio_display }}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.875rem;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-secondary);">Proteïna (g):</span>
+            <span style="font-weight: 600;">{{ form.instance.alimentacio.proteina }}g</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-secondary);">Carbohidrats (g):</span>
+            <span style="font-weight: 600;">{{ form.instance.alimentacio.carbohidrats }}g</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-secondary);">Grases (g):</span>
+            <span style="font-weight: 600;">{{ form.instance.alimentacio.grases }}g</span>
+          </div>
+          {% if form.instance.alimentacio.suplementacio %}
+            <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color);">
+              <span style="color: var(--text-secondary); display: block; margin-bottom: 0.25rem;">Suplementació:</span>
+              <span style="font-weight: 500; font-size: 0.8rem; background: rgba(255,255,255,0.05); padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block;">{{ form.instance.alimentacio.suplementacio }}</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <!-- Empty State for Diet -->
+      <div class="card" style="text-align: center; padding: 2rem; margin: 0;">
+        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+          <i data-lucide="apple" style="color: var(--text-muted); width: 24px; height: 24px;"></i>
+        </div>
+        <h3 style="font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Sense Pauta Registrada</h3>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">Aquest atleta no té cap planificació dietètica assignada.</p>
+        <a href="{% url 'alimentacio_create' form.instance.dni_atleta %}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+          <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Crear Pauta d'Alimentació
+        </a>
+      </div>
+    {% endif %}
+  </div>
+  {% endif %}
+</div> <!-- /Main Layout -->
 {% endblock %}
