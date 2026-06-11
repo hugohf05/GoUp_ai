@@ -11,7 +11,7 @@
   <!-- Card: Atletes totals -->
   <div class="card metric-card">
     <span class="metric-title">Atletes Actius</span>
-    <h2 class="metric-value">{{ total_atletes }}</h2>
+    <h2 class="metric-value" id="metric-atletes">{{ total_atletes }}</h2>
     <span class="metric-trend up">
       <i data-lucide="users" style="width: 14px; height: 14px;"></i>
       Registrats al sistema
@@ -21,7 +21,7 @@
   <!-- Card: Atletes lesionats -->
   <div class="card metric-card">
     <span class="metric-title">En estat de Lesió</span>
-    <h2 class="metric-value" style="color: var(--danger); -webkit-text-fill-color: var(--danger);">{{ total_lesionats }}</h2>
+    <h2 class="metric-value" id="metric-lesionats" style="color: var(--danger); -webkit-text-fill-color: var(--danger);">{{ total_lesionats }}</h2>
     <span class="metric-trend warning">
       <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
       Atletes no disponibles
@@ -31,7 +31,7 @@
   <!-- Card: Sessions totals -->
   <div class="card metric-card">
     <span class="metric-title">Sessions totals</span>
-    <h2 class="metric-value">{{ total_sessions }}</h2>
+    <h2 class="metric-value" id="metric-sessions">{{ total_sessions }}</h2>
     <span class="metric-trend up">
       <i data-lucide="bar-chart" style="width: 14px; height: 14px;"></i>
       Històric d'entrenaments
@@ -41,11 +41,30 @@
   <!-- Card: Valoracions totals -->
   <div class="card metric-card">
     <span class="metric-title">Valoracions</span>
-    <h2 class="metric-value">{{ total_valoracions }}</h2>
+    <h2 class="metric-value" id="metric-valoracions">{{ total_valoracions }}</h2>
     <span class="metric-trend info">
       <i data-lucide="star" style="width: 14px; height: 14px;"></i>
       Feedback d'instal·lacions
     </span>
+  </div>
+</section>
+
+<!-- Charts Section -->
+<section style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-top: 2rem;">
+  <!-- Gràfic Lineal: Sessions -->
+  <div class="card">
+    <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Activitat d'Entrenaments (Últims 7 dies)</h2>
+    <div style="height: 300px; width: 100%;">
+      <canvas id="sessionsChart"></canvas>
+    </div>
+  </div>
+  
+  <!-- Gràfic Doughnut: Objectius d'Atletes -->
+  <div class="card">
+    <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Distribució d'Objectius</h2>
+    <div style="height: 300px; width: 100%;">
+      <canvas id="athletesChart"></canvas>
+    </div>
   </div>
 </section>
 
@@ -126,4 +145,94 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let sessionsChart = null;
+    let athletesChart = null;
+    
+    // Chart.js Premium Dark Mode defaults
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = 'rgba(51, 65, 85, 0.5)';
+    Chart.defaults.font.family = "'Inter', system-ui, -apple-system, sans-serif";
+    
+    function initCharts() {
+        const ctxSessions = document.getElementById('sessionsChart').getContext('2d');
+        sessionsChart = new Chart(ctxSessions, {
+            type: 'line',
+            data: { labels: [], datasets: [{
+                label: 'Sessions Realitzades',
+                data: [],
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                borderWidth: 3,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#4f46e5',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                }
+            }
+        });
+
+        const ctxAthletes = document.getElementById('athletesChart').getContext('2d');
+        athletesChart = new Chart(ctxAthletes, {
+            type: 'doughnut',
+            data: { labels: [], datasets: [{
+                data: [],
+                backgroundColor: ['#4f46e5', '#3b82f6', '#06b6d4', '#10b981', '#6366f1'],
+                borderWidth: 0,
+                hoverOffset: 4
+            }] },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                cutout: '75%',
+                plugins: { 
+                    legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } } 
+                }
+            }
+        });
+    }
+
+    function fetchDashboardData() {
+        fetch('{% url "dashboard_data" %}')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('metric-atletes').textContent = data.total_atletes;
+                document.getElementById('metric-lesionats').textContent = data.total_lesionats;
+                document.getElementById('metric-sessions').textContent = data.total_sessions;
+                document.getElementById('metric-valoracions').textContent = data.total_valoracions;
+                
+                if (sessionsChart && data.chart_sessions) {
+                    sessionsChart.data.labels = data.chart_sessions.labels;
+                    sessionsChart.data.datasets[0].data = data.chart_sessions.data;
+                    sessionsChart.update();
+                }
+                
+                if (athletesChart && data.chart_objectius) {
+                    athletesChart.data.labels = data.chart_objectius.labels;
+                    athletesChart.data.datasets[0].data = data.chart_objectius.data;
+                    athletesChart.update();
+                }
+            })
+            .catch(error => console.error('Error fetching real-time dashboard data:', error));
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        initCharts();
+        fetchDashboardData();
+        setInterval(fetchDashboardData, 5000); // 5 seconds
+    });
+</script>
 {% endblock %}

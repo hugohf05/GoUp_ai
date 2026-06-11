@@ -29,6 +29,47 @@ class DashboardView(TemplateView):
         context['active_lesions'] = Lesio.objects.select_related('atleta').filter(estat_actual=EstatActual.ACTIVA).order_by('-data_inici')[:5]
         return context
 
+from django.http import JsonResponse
+from django.views import View
+
+class DashboardDataView(View):
+    def get(self, request, *args, **kwargs):
+        from django.utils import timezone
+        from datetime import timedelta
+        from django.db.models import Count
+
+        # Gràfic 1: Activitat d'Entrenaments (Últims 7 dies)
+        today = timezone.now().date()
+        days = [today - timedelta(days=i) for i in range(6, -1, -1)]
+        
+        sessions_data = []
+        labels_days = []
+        for day in days:
+            count = SessioEntrenament.objects.filter(data=day).count()
+            sessions_data.append(count)
+            labels_days.append(day.strftime("%d/%m"))
+            
+        # Gràfic 2: Distribució d'Objectius d'Atletes
+        objectius_data = Atleta.objects.values('objectiu').annotate(count=Count('dni_atleta')).order_by('-count')[:5]
+        labels_obj = [o['objectiu'] if o['objectiu'] else 'Sense objectiu' for o in objectius_data]
+        data_obj = [o['count'] for o in objectius_data]
+
+        data = {
+            'total_atletes': Atleta.objects.count(),
+            'total_lesionats': Atleta.objects.filter(estat=EstatAtleta.LESIONAT).count(),
+            'total_sessions': SessioEntrenament.objects.count(),
+            'total_valoracions': Valoracio.objects.count(),
+            'chart_sessions': {
+                'labels': labels_days,
+                'data': sessions_data
+            },
+            'chart_objectius': {
+                'labels': labels_obj,
+                'data': data_obj
+            }
+        }
+        return JsonResponse(data)
+
 
 # --------------------------------------------------------------------------
 # 2. ATLETA CRUD VIEWS
@@ -116,19 +157,19 @@ class AtletaUpdateView(UpdateView):
         return super().form_valid(form)
 
 
-class AtletaDeleteView(DeleteView):
-    model = Atleta
-    pk_url_kwarg = 'dni'
-    success_url = reverse_lazy('atleta_list')
+from django.views import View
 
-    def get(self, request, *args, **kwargs):
-        # Permetre eliminació directa mitjançant GET ja que es confirma via JS
-        return self.post(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        atleta = self.get_object()
-        messages.success(request, f"L'atleta {atleta.nom} ha estat eliminat.")
-        return super().post(request, *args, **kwargs)
+class AtletaDeleteView(View):
+    def get(self, request, dni, *args, **kwargs):
+        from django.db.models import RestrictedError, ProtectedError
+        atleta = get_object_or_404(Atleta, dni_atleta=dni)
+        nom_atleta = atleta.nom
+        try:
+            atleta.delete()
+            messages.success(request, f"L'atleta {nom_atleta} ha estat eliminat.")
+        except (RestrictedError, ProtectedError):
+            messages.error(request, f"No es pot eliminar l'atleta perquè té registres vinculats que ho impedeixen.")
+        return redirect('atleta_list')
 
 
 # --------------------------------------------------------------------------

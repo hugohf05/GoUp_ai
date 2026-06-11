@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    DashboardView,
+    DashboardView, DashboardDataView,
     AtletaListView, AtletaDetailView, AtletaCreateView, AtletaUpdateView, AtletaDeleteView,
     LesioListView, LesioCreateView, LesioUpdateView,
     SessioListView, SessioCreateView,
@@ -11,6 +11,7 @@ from .views import (
 urlpatterns = [
     # Dashboard Overview
     path("", DashboardView.as_view(), name="dashboard"),
+    path("api/dashboard-data/", DashboardDataView.as_view(), name="dashboard_data"),
     
     # Atletes CRUD
     path("atletes/", AtletaListView.as_view(), name="atleta_list"),

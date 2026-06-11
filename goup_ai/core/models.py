@@ -54,7 +54,7 @@ class Atleta(models.Model):
 
 
 class Alimentacio(models.Model):
-    atleta = models.OneToOneField(Atleta, on_delete=models.RESTRICT, related_name='alimentacio', help_text="Atleta a qui pertany aquesta dieta")
+    atleta = models.OneToOneField(Atleta, on_delete=models.CASCADE, related_name='alimentacio', help_text="Atleta a qui pertany aquesta dieta")
     tipus_alimentacio = models.CharField(max_length=15, choices=TipusAlimentacio.choices, help_text="Preferència dietètica")
     calories = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0.01)], help_text="Objectiu calòric diari (kcal)")
     proteina = models.DecimalField(max_digits=5, decimal_places=2, validators=[MinValueValidator(0.01)], help_text="Grams de proteïna diaris (g)")

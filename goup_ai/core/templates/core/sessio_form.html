@@ -25,7 +25,7 @@
       
       <!-- Atleta Selection -->
       <div class="form-group">
-        <label for="{{ form.atleta.id_for_label }}" class="form-label">Atleta que entrena</label>
+        <label for="{{ form.atleta.id_for_label }}" class="form-label">Atleta</label>
         {% if fixed_atleta %}
           <input type="text" value="{{ fixed_atleta.nom }} (DNI: {{ fixed_atleta.dni_atleta }})" class="form-control" disabled style="opacity: 0.6; cursor: not-allowed;">
           <input type="hidden" name="atleta" value="{{ fixed_atleta.dni_atleta }}">
