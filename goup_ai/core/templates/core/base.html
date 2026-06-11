@@ -11,6 +11,12 @@
   
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Global jQuery and Select2 -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  
   {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -40,6 +46,12 @@
           <a href="{% url 'lesio_list' %}">
             <i data-lucide="activity"></i>
             <span>Lesions</span>
+          </a>
+        </li>
+        <li class="nav-item {% if active_tab == 'descans' %}active{% endif %}">
+          <a href="{% url 'descans_list' %}">
+            <i data-lucide="moon"></i>
+            <span>Descans</span>
           </a>
         </li>
         <li class="nav-item {% if active_tab == 'sessions' %}active{% endif %}">
@@ -103,6 +115,84 @@
   <!-- Initialize Lucide Icons -->
   <script>
     lucide.createIcons();
+    
+    $(document).ready(function() {
+      // Global initialization for AJAX Select2
+      if ($('.select2-ajax-v2').length > 0) {
+        $('.select2-ajax-v2').select2({
+          placeholder: 'Busca i selecciona un atleta...',
+          allowClear: true,
+          ajax: {
+            url: "{% url 'atleta_autocomplete' %}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+              return { q: params.term || '', term: params.term || '' };
+            },
+            processResults: function (data) {
+              return { results: data.results || [] };
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+              if (textStatus === 'abort') return;
+              console.error("Select2 AJAX Error:", textStatus, errorThrown);
+              alert("Error de connexió al cercar l'atleta. Si us plau, actualitza la pàgina o avisa l'administrador. Error: " + textStatus);
+            },
+            cache: false
+          },
+          minimumInputLength: 2,
+        }).on('select2:select', function (e) {
+            // Si estem a la pàgina de creació de Sessió o Exercici, recarreguem per carregar les dades dependents
+            if (window.location.href.includes('/sessions/nova') || window.location.href.includes('/exercicis/nou')) {
+                var data = e.params.data;
+                window.location.href = '?atleta=' + data.id;
+            }
+        });
+      }
+      
+      // Initialize normal select2 if any
+      if ($('.select2:not(.select2-ajax-v2):not(.select2-ajax-exercicis)').length > 0) {
+        $('.select2:not(.select2-ajax-v2):not(.select2-ajax-exercicis)').select2({
+            placeholder: 'Selecciona una opció...',
+            allowClear: true
+        });
+      }
+
+      // Initialize AJAX Select2 for Exercicis
+      if ($('.select2-ajax-exercicis').length > 0) {
+        $('.select2-ajax-exercicis').select2({
+          placeholder: 'Cerca i selecciona exercicis...',
+          allowClear: true,
+          ajax: {
+            url: "{% url 'exercici_autocomplete' %}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+              return { 
+                q: params.term || '',
+                atleta: $('select[name="atleta"]').val() || ''
+              };
+            },
+            processResults: function (data) {
+              return { results: data.results || [] };
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+              if (textStatus === 'abort') return;
+              console.error("Select2 AJAX Error:", textStatus, errorThrown);
+              alert("Error de connexió al cercar l'exercici.");
+            },
+            cache: false
+          },
+          minimumInputLength: 2,
+        });
+
+        // Add event listener to clear exercicis when atleta changes
+        $('select[name="atleta"]').on('select2:select', function (e) {
+             if ($('select[name="exercicis"]').length > 0) {
+                 $('select[name="exercicis"]').val(null).trigger('change');
+             }
+        });
+      }
+    });
   </script>
   {% block extra_js %}{% endblock %}
 </body>

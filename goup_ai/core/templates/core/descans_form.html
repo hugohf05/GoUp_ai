@@ -1,0 +1,159 @@
+{% extends 'core/base.html' %}
+
+{% block title %}
+  {% if is_edit %}Editar Descans{% else %}Nou Registre de Descans{% endif %} - GoUp AI
+{% endblock %}
+
+{% block page_title %}
+  {% if is_edit %}Editar Registre de Son{% else %}Registrar Nou Descans{% endif %}
+{% endblock %}
+
+{% block page_subtitle %}
+  Introduïu les mètriques de les fases del son i la variabilitat cardíaca. La duració total es calcularà automàticament.
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+  <form method="POST" novalidate>
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        <i data-lucide="alert-octagon"></i>
+        <div>
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="user" style="color: var(--secondary);"></i> Atleta i Data
+        </h3>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.atleta.id_for_label }}" class="form-label">Atleta <span style="color: var(--danger);">*</span></label>
+                {{ form.atleta }}
+                {% if form.atleta.errors %}
+                  <span style="color: var(--danger); font-size: 0.8rem;">{{ form.atleta.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.data_inici.id_for_label }}" class="form-label">Data i Hora d'anar a dormir <span style="color: var(--danger);">*</span></label>
+                {{ form.data_inici }}
+                {% if form.data_inici.errors %}
+                  <span style="color: var(--danger); font-size: 0.8rem;">{{ form.data_inici.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="moon" style="color: var(--primary);"></i> Fases del Son (en minuts)
+        </h3>
+        
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <label for="{{ form.despert.id_for_label }}" class="form-label" style="color: var(--text-secondary);">Temps Despert</label>
+                {{ form.despert }}
+                {% if form.despert.errors %}
+                  <span style="color: var(--danger); font-size: 0.8rem;">{{ form.despert.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="{{ form.rem.id_for_label }}" class="form-label" style="color: #a78bfa;">Fase REM</label>
+                {{ form.rem }}
+                {% if form.rem.errors %}
+                  <span style="color: var(--danger); font-size: 0.8rem;">{{ form.rem.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="{{ form.core.id_for_label }}" class="form-label" style="color: #60a5fa;">Fase Core</label>
+                {{ form.core }}
+                {% if form.core.errors %}
+                  <span style="color: var(--danger); font-size: 0.8rem;">{{ form.core.errors.0 }}</span>
+                {% endif %}
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="{{ form.deep.id_for_label }}" class="form-label" style="color: #3b82f6;">Fase Profunda</label>
+                {{ form.deep }}
+                {% if form.deep.errors %}
+                  <span style="color: var(--danger); font-size: 0.8rem;">{{ form.deep.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="background: rgba(99, 102, 241, 0.1); border-left: 4px solid var(--primary); padding: 1rem; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 600; color: var(--text-primary);">Duració Total (Calculada)</h4>
+                <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Suma automàtica de les fases anteriors</p>
+            </div>
+            <div style="width: 150px;">
+                {{ form.duracio }}
+                {% if form.duracio.errors %}
+                  <span style="color: var(--danger); font-size: 0.8rem;">{{ form.duracio.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="heart-pulse" style="color: var(--success);"></i> Mètriques de Recuperació
+        </h3>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.hrv.id_for_label }}" class="form-label">HRV (Variabilitat Cardíaca) <span style="color: var(--danger);">*</span></label>
+                <div class="input-group" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="flex-grow: 1;">{{ form.hrv }}</div>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">ms</span>
+                </div>
+                {% if form.hrv.errors %}
+                  <span style="color: var(--danger); font-size: 0.8rem;">{{ form.hrv.errors.0 }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+      <a href="{% url 'descans_list' %}" class="btn btn-secondary">Cancel·lar</a>
+      <button type="submit" class="btn btn-primary">
+        <i data-lucide="check"></i> {% if is_edit %}Desar Canvis{% else %}Crear Registre{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Auto-calculate total duration
+        const inputs = $('.rests-input');
+        const duracioInput = $('#id_duracio');
+
+        function calculateDuration() {
+            let total = 0;
+            inputs.each(function() {
+                const val = parseInt($(this).val()) || 0;
+                total += val;
+            });
+            duracioInput.val(total);
+        }
+
+        // Listen for input events on all phase inputs
+        inputs.on('input', calculateDuration);
+
+        // Run once on load (useful for edit mode)
+        calculateDuration();
+    });
+</script>
+{% endblock %}

@@ -7,8 +7,8 @@ from django.db.models import Q, Avg, Count
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 
-from .models import Atleta, Lesio, SessioEntrenament, Valoracio, Ubicacio, EstatActual, EstatAtleta, Exercici, RegistreDiari, InformeIA, Forca, Resistencia, Alimentacio
-from .forms import AtletaForm, LesioForm, SessioForm, ValoracioForm, RegistreDiariForm, ExerciciForm, AlimentacioForm
+from .models import Atleta, Lesio, SessioEntrenament, Valoracio, Ubicacio, EstatActual, EstatAtleta, Exercici, RegistreDiari, InformeIA, Forca, Resistencia, Alimentacio, Descans
+from .forms import AtletaForm, LesioForm, SessioForm, ValoracioForm, RegistreDiariForm, ExerciciForm, AlimentacioForm, DescansForm, UbicacioForm
 
 # --------------------------------------------------------------------------
 # 1. DASHBOARD VIEW
@@ -241,6 +241,7 @@ class LesioCreateView(CreateView):
         lesio.id_lesio = (max_id or 0) + 1
             
         lesio.save()
+        self.object = lesio
         messages.success(self.request, f"S'ha registrat la lesió a la zona '{lesio.zona_afectada}' per a {lesio.atleta.nom}.")
         return redirect(self.get_success_url())
 
@@ -395,6 +396,19 @@ class SessioCreateView(CreateView):
 # --------------------------------------------------------------------------
 # 5. UBICACIONS & VALORACIONS
 # --------------------------------------------------------------------------
+from django.urls import reverse_lazy
+
+class UbicacioCreateView(CreateView):
+    model = Ubicacio
+    form_class = UbicacioForm
+    template_name = "core/ubicacio_form.html"
+    success_url = reverse_lazy("ubicacio_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_tab"] = "ubicacions"
+        return context
+
 class UbicacioListView(ListView):
     model = Ubicacio
     template_name = 'core/ubicacio_list.html'
@@ -583,7 +597,75 @@ class RegistreDiariCreateView(CreateView):
         )
 
         messages.success(self.request, "S'ha registrat el teu estat diari i l'IA ha generat un nou informe de recomanacions.")
-        return redirect('atleta_detail', dni=registre.atleta.dni_atleta)
+        return redirect('atleta_detail', dni_atleta=atleta.dni_atleta)
+
+
+# --------------------------------------------------------------------------
+# 9. DESCANS VIEWS
+# --------------------------------------------------------------------------
+class DescansListView(ListView):
+    model = Descans
+    template_name = 'core/descans_list.html'
+    context_object_name = 'descansos'
+    ordering = ['-data_inici']
+    paginate_by = 15
+
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related('atleta')
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(atleta__nom__icontains=query) | Q(atleta__dni_atleta__icontains=query)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('q', '')
+        context['active_tab'] = 'descans'
+        return context
+
+
+class DescansCreateView(CreateView):
+    model = Descans
+    form_class = DescansForm
+    template_name = 'core/descans_form.html'
+    success_url = reverse_lazy('descans_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_edit'] = False
+        context['active_tab'] = 'descans'
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "S'ha registrat el descans correctament.")
+        return super().form_valid(form)
+
+
+class DescansUpdateView(UpdateView):
+    model = Descans
+    form_class = DescansForm
+    template_name = 'core/descans_form.html'
+    success_url = reverse_lazy('descans_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_edit'] = True
+        context['active_tab'] = 'descans'
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "S'ha actualitzat el registre de descans correctament.")
+        return super().form_valid(form)
+
+
+class DescansDeleteView(View):
+    def get(self, request, pk, *args, **kwargs):
+        descans = get_object_or_404(Descans, pk=pk)
+        descans.delete()
+        messages.success(request, "S'ha eliminat el registre de descans correctament.")
+        return redirect('descans_list')
 
 
 class InformeIADetailView(DetailView):
@@ -652,3 +734,67 @@ class ExerciciCreateView(CreateView):
             
         messages.success(self.request, f"L'exercici '{self.object.nom}' i les seves {num_serie - 1} sèries s'han desat correctament.")
         return super().form_valid(form)
+
+# --------------------------------------------------------------------------
+# 11. API AJAX AUTOCOMPLETE
+# --------------------------------------------------------------------------
+class AtletaAutocompleteView(View):
+    def get(self, request, *args, **kwargs):
+        try:
+            query = request.GET.get('q', '').strip()
+            if not query:
+                query = request.GET.get('term', '').strip()
+                
+            if len(query) < 2:
+                return JsonResponse({'results': [{'id': '', 'text': 'Escriu almenys 2 caràcters...'}]})
+            
+            atletes = Atleta.objects.filter(
+                Q(nom__icontains=query) | Q(dni_atleta__icontains=query)
+            ).order_by('nom')[:20]
+            
+            results = [
+                {
+                    'id': atleta.dni_atleta,
+                    'text': f"{atleta.nom} ({atleta.dni_atleta})"
+                } for atleta in atletes
+            ]
+            
+            if not results:
+                return JsonResponse({'results': [{'id': '', 'text': 'Cap atleta trobat a la base de dades.'}]})
+                
+            return JsonResponse({'results': results})
+        except Exception as e:
+            return JsonResponse({'results': [{'id': '', 'text': f'Error de servidor: {str(e)}'}]})
+
+class ExerciciAutocompleteView(View):
+    def get(self, request, *args, **kwargs):
+        try:
+            query = request.GET.get('q', '').strip()
+            atleta_id = request.GET.get('atleta', '').strip()
+            
+            if len(query) < 2 and not atleta_id:
+                return JsonResponse({'results': [{'id': '', 'text': 'Escriu almenys 2 caràcters...'}]})
+            
+            exercicis = Exercici.objects.all()
+            
+            if atleta_id:
+                exercicis = exercicis.filter(atleta__dni_atleta=atleta_id)
+                
+            if query:
+                exercicis = exercicis.filter(nom__icontains=query)
+                
+            exercicis = exercicis.order_by('nom')[:30]
+            
+            results = [
+                {
+                    'id': ex.id,
+                    'text': f"{ex.nom} ({ex.atleta.nom})" if not atleta_id else ex.nom
+                } for ex in exercicis
+            ]
+            
+            if not results:
+                return JsonResponse({'results': [{'id': '', 'text': 'Cap exercici trobat.'}]})
+                
+            return JsonResponse({'results': results})
+        except Exception as e:
+            return JsonResponse({'results': [{'id': '', 'text': f'Error de servidor: {str(e)}'}]})

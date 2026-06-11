@@ -3,7 +3,6 @@
 {% block title %}Nou Exercici - GoUp AI{% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     .series-card {
         border-left: 4px solid #4f46e5;
@@ -194,17 +193,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    // Inicialització de Select2
-    $(document).ready(function() {
-        $('.select2').select2({
-            width: '100%',
-            placeholder: "Cerca un atleta..."
-        });
-    });
-
     // Lògica per crear Sèries
     const seriesContainer = document.getElementById('seriesContainer');
     const emptyMsg = document.getElementById('emptySeriesMsg');

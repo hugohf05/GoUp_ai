@@ -1,0 +1,117 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Descansos - GoUp AI{% endblock %}
+
+{% block page_title %}Historial de Descans i Son{% endblock %}
+{% block page_subtitle %}Consulteu i analitzeu les mètriques de recuperació i les fases del son dels atletes{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'descans_create' %}" class="btn btn-primary">
+  <i data-lucide="plus"></i> Registrar Descans
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <!-- Search & Filters -->
+  <form method="GET" action="{% url 'descans_list' %}" class="filters-bar">
+    <div class="search-input-wrapper">
+      <i data-lucide="search" class="search-icon"></i>
+      <input type="text" name="q" value="{{ search_query }}" placeholder="Cerca descans per nom d'atleta o DNI..." class="form-control">
+    </div>
+    
+    <button type="submit" class="btn btn-secondary">Buscar</button>
+    {% if search_query %}
+      <a href="{% url 'descans_list' %}" class="btn btn-secondary">Netejar</a>
+    {% endif %}
+  </form>
+
+  <!-- Descansos Table -->
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Atleta</th>
+          <th>Data d'Inici</th>
+          <th>Duració Total</th>
+          <th>Fases (REM/Core/Deep)</th>
+          <th>Despert</th>
+          <th>HRV (ms)</th>
+          <th style="text-align: right;">Accions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for descans in descansos %}
+          <tr>
+            <td>
+              <a href="{% url 'atleta_detail' descans.atleta.dni_atleta %}" style="font-weight: 600; text-decoration: underline; color: var(--primary);">
+                {{ descans.atleta.nom }}
+              </a>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ descans.atleta.dni_atleta }}</div>
+            </td>
+            <td>
+              <div style="font-weight: 600;">{{ descans.data_inici|date:"d/m/Y" }}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">{{ descans.data_inici|time:"H:i" }}</div>
+            </td>
+            <td>
+              <span class="badge badge-primary" style="font-size: 0.85rem; padding: 0.4rem 0.6rem;">
+                <!-- Hack to format minutes to Xh Ym in Django templates without custom tags -->
+                <script>document.write(Math.floor({{ descans.duracio }} / 60) + 'h ' + ({{ descans.duracio }} % 60) + 'm');</script>
+              </span>
+            </td>
+            <td>
+              <div style="display: flex; gap: 0.25rem; align-items: center;">
+                <span title="REM" style="color: #a78bfa; font-weight: 600; font-size: 0.85rem;">{{ descans.rem }}m</span><span style="color:var(--text-muted);">/</span>
+                <span title="Core (Lleuger)" style="color: #60a5fa; font-weight: 600; font-size: 0.85rem;">{{ descans.core }}m</span><span style="color:var(--text-muted);">/</span>
+                <span title="Deep (Profund)" style="color: #3b82f6; font-weight: 600; font-size: 0.85rem;">{{ descans.deep }}m</span>
+              </div>
+            </td>
+            <td>
+              <span style="color: {% if descans.despert > 60 %}var(--danger){% else %}var(--text-secondary){% endif %}; font-weight: 500;">
+                {{ descans.despert }}m
+              </span>
+            </td>
+            <td>
+              <span style="font-weight: 700; color: {% if descans.hrv > 60 %}var(--success){% elif descans.hrv > 40 %}var(--warning){% else %}var(--danger){% endif %};">
+                {{ descans.hrv }}
+              </span>
+            </td>
+            <td style="text-align: right; display: flex; justify-content: flex-end; gap: 0.5rem;">
+              <a href="{% url 'descans_update' descans.pk %}" class="btn btn-secondary" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+                <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> Editar
+              </a>
+              <a href="{% url 'descans_delete' descans.pk %}" class="btn btn-secondary" style="padding: 0.4rem 0.6rem; font-size: 0.8rem; color: var(--danger); border-color: rgba(2ef, 68, 68, 0.2);" onclick="return confirm('Esteu segurs que voleu eliminar aquest registre?');">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem;">No s'han trobat registres de descans.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+    <div class="pagination">
+      <span class="pagination-info">
+        Mostrant pàgina <strong>{{ page_obj.number }}</strong> de {{ page_obj.paginator.num_pages }} ({{ page_obj.paginator.count }} registres totals)
+      </span>
+      <div class="pagination-controls">
+        {% if page_obj.has_previous %}
+          <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-left"></i></a>
+          <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-left"></i></a>
+        {% endif %}
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevron-right"></i></a>
+          <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-secondary" style="padding: 0.4rem 0.8rem;"><i data-lucide="chevrons-right"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

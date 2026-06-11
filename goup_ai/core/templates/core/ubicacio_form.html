@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Registrar Ubicació - GoUp AI{% endblock %}
+
+{% block page_title %}Registrar Nova Ubicació{% endblock %}
+{% block page_subtitle %}Creeu una nova ubicació on es realitzaran els entrenaments{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+  <form method="POST" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        <i data-lucide="alert-octagon"></i>
+        <div>
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="form-grid" style="grid-template-columns: 1fr;">
+      
+      <!-- Tipus d'Ubicació -->
+      <div class="form-group">
+        <label for="{{ form.tipus_ubicacio.id_for_label }}" class="form-label">Tipus d'Ubicació</label>
+        {{ form.tipus_ubicacio }}
+        {% if form.tipus_ubicacio.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.tipus_ubicacio.errors.0 }}</span>
+        {% endif %}
+      </div>
+
+      <!-- Adreça -->
+      <div class="form-group">
+        <label for="{{ form.adreca.id_for_label }}" class="form-label">Adreça / Lloc</label>
+        {{ form.adreca }}
+        {% if form.adreca.errors %}
+          <span style="color: var(--danger); font-size: 0.8rem;">{{ form.adreca.errors.0 }}</span>
+        {% endif %}
+        <span class="form-help">Nom del gimnàs, parc, pista d'atletisme o adreça exacta.</span>
+      </div>
+
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+      <a href="{% url 'ubicacio_list' %}" class="btn btn-secondary">Cancel·lar</a>
+      <button type="submit" class="btn btn-primary">
+        <i data-lucide="check"></i> Registrar Ubicació
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

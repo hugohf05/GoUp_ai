@@ -5,6 +5,12 @@
 {% block page_title %}Ubicacions d'Entrenament{% endblock %}
 {% block page_subtitle %}Consulteu les zones i gimnasos disponibles, i les valoracions que han fet els atletes{% endblock %}
 
+{% block header_actions %}
+<a href="{% url 'ubicacio_create' %}" class="btn btn-primary">
+  <i data-lucide="plus"></i> Afegir Ubicació
+</a>
+{% endblock %}
+
 {% block content %}
 <div class="card">
   <!-- Search & Filters -->
