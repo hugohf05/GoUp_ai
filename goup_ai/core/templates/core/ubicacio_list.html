@@ -70,9 +70,15 @@
             <td>
               <span style="font-weight: 500;">{{ ub.num_ratings }}</span> opinions
             </td>
-            <td style="text-align: right;">
-              <a href="{% url 'valoracio_create' %}?ubicacio={{ ub.id }}" class="btn btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
+            <td style="text-align: right; white-space: nowrap;">
+              <a href="{% url 'valoracio_create' %}?ubicacio={{ ub.id }}" class="btn btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem; margin-right: 0.25rem;">
                 <i data-lucide="star" style="width: 14px; height: 14px;"></i> Valorar
+              </a>
+              <a href="{% url 'ubicacio_update' ub.id %}" class="btn btn-secondary" style="padding: 0.4rem; display: inline-flex; align-items: center; justify-content: center;" title="Editar">
+                <i data-lucide="edit-2" style="width: 16px; height: 16px;"></i>
+              </a>
+              <a href="{% url 'ubicacio_delete' ub.id %}" class="btn btn-danger" style="padding: 0.4rem; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
               </a>
             </td>
           </tr>

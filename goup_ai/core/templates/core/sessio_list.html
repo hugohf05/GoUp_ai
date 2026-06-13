@@ -36,6 +36,7 @@
           <th>Durada Total</th>
           <th>Comentaris</th>
           <th>Exercicis</th>
+          <th style="text-align: right;">Accions</th>
         </tr>
       </thead>
       <tbody>
@@ -64,6 +65,14 @@
                   <span style="font-size: 0.75rem; color: var(--text-muted);">-</span>
                 {% endfor %}
               </div>
+            </td>
+            <td style="text-align: right; white-space: nowrap;">
+              <a href="{% url 'sessio_update' sessio.id %}" class="btn btn-secondary" style="padding: 0.4rem; display: inline-flex; align-items: center; justify-content: center;" title="Editar">
+                <i data-lucide="edit-2" style="width: 16px; height: 16px;"></i>
+              </a>
+              <a href="{% url 'sessio_delete' sessio.id %}" class="btn btn-danger" style="padding: 0.4rem; display: inline-flex; align-items: center; justify-content: center;" title="Eliminar">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+              </a>
             </td>
           </tr>
         {% empty %}

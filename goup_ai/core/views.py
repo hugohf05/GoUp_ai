@@ -392,6 +392,36 @@ class SessioCreateView(CreateView):
             return redirect('atleta_detail', dni=dni)
         return super().form_valid(form)
 
+class SessioUpdateView(UpdateView):
+    model = SessioEntrenament
+    form_class = SessioForm
+    template_name = 'core/sessio_form.html'
+    pk_url_kwarg = 'sessio_id'
+    
+    def get_success_url(self):
+        messages.success(self.request, "Sessió d'entrenament actualitzada amb èxit.")
+        return reverse('sessio_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'sessions'
+        context['is_update'] = True
+        return context
+
+class SessioDeleteView(DeleteView):
+    model = SessioEntrenament
+    template_name = 'core/sessio_confirm_delete.html'
+    pk_url_kwarg = 'sessio_id'
+    
+    def get_success_url(self):
+        messages.success(self.request, "Sessió d'entrenament eliminada amb èxit.")
+        return reverse('sessio_list')
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_tab'] = 'sessions'
+        return context
+
 
 # --------------------------------------------------------------------------
 # 5. UBICACIONS & VALORACIONS
@@ -402,6 +432,28 @@ class UbicacioCreateView(CreateView):
     model = Ubicacio
     form_class = UbicacioForm
     template_name = "core/ubicacio_form.html"
+    success_url = reverse_lazy("ubicacio_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_tab"] = "ubicacions"
+        return context
+
+class UbicacioUpdateView(UpdateView):
+    model = Ubicacio
+    form_class = UbicacioForm
+    template_name = "core/ubicacio_form.html"
+    success_url = reverse_lazy("ubicacio_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_tab"] = "ubicacions"
+        context["is_update"] = True
+        return context
+
+class UbicacioDeleteView(DeleteView):
+    model = Ubicacio
+    template_name = "core/ubicacio_confirm_delete.html"
     success_url = reverse_lazy("ubicacio_list")
 
     def get_context_data(self, **kwargs):

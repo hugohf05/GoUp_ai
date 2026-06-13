@@ -1,0 +1,31 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Eliminar Sessió d'Entrenament - GoUp AI{% endblock %}
+
+{% block page_title %}Eliminar Sessió d'Entrenament{% endblock %}
+{% block page_subtitle %}Estàs segur que vols eliminar aquesta sessió d'entrenament? Aquesta acció no es pot desfer.{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 3rem;">
+  <div style="margin-bottom: 2rem;">
+    <div style="width: 64px; height: 64px; background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+      <i data-lucide="alert-triangle" style="width: 32px; height: 32px;"></i>
+    </div>
+    
+    <h3 style="margin-bottom: 0.5rem;">Confirmar Eliminació</h3>
+    <p style="color: var(--text-muted);">
+      Sessió de <strong>{{ object.atleta.nom }}</strong> el <strong>{{ object.data|date:"d/m/Y" }}</strong>.
+    </p>
+  </div>
+
+  <form method="POST">
+    {% csrf_token %}
+    <div style="display: flex; justify-content: center; gap: 1rem;">
+      <a href="{% url 'sessio_list' %}" class="btn btn-secondary">Cancel·lar</a>
+      <button type="submit" class="btn btn-danger">
+        <i data-lucide="trash-2"></i> Sí, eliminar sessió
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

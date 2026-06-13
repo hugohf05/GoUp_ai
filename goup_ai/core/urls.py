@@ -4,8 +4,8 @@ from .views import (
     AtletaListView, AtletaDetailView, AtletaCreateView, AtletaUpdateView, AtletaDeleteView,
     LesioListView, LesioCreateView, LesioUpdateView,
     AlimentacioCreateView, AlimentacioUpdateView,
-    SessioListView, SessioCreateView,
-    UbicacioListView, UbicacioCreateView, ValoracioCreateView,
+    SessioListView, SessioCreateView, SessioUpdateView, SessioDeleteView,
+    UbicacioListView, UbicacioCreateView, UbicacioUpdateView, UbicacioDeleteView, ValoracioCreateView,
     RegistreDiariCreateView, InformeIADetailView, ExerciciCreateView,
     DescansListView, DescansCreateView, DescansUpdateView, DescansDeleteView,
     AtletaAutocompleteView, ExerciciAutocompleteView
@@ -43,6 +43,8 @@ urlpatterns = [
     # Sessions d'Entrenament CRUD
     path("sessions/", SessioListView.as_view(), name="sessio_list"),
     path("sessions/nova/", SessioCreateView.as_view(), name="sessio_create"),
+    path("sessions/<int:sessio_id>/editar/", SessioUpdateView.as_view(), name="sessio_update"),
+    path("sessions/<int:sessio_id>/eliminar/", SessioDeleteView.as_view(), name="sessio_delete"),
     
     # Exercicis
     path("exercicis/nou/", ExerciciCreateView.as_view(), name="exercici_create"),
@@ -50,6 +52,8 @@ urlpatterns = [
     # Ubicacions i Valoracions
     path("ubicacions/", UbicacioListView.as_view(), name="ubicacio_list"),
     path("ubicacions/nova/", UbicacioCreateView.as_view(), name="ubicacio_create"),
+    path("ubicacions/<int:pk>/editar/", UbicacioUpdateView.as_view(), name="ubicacio_update"),
+    path("ubicacions/<int:pk>/eliminar/", UbicacioDeleteView.as_view(), name="ubicacio_delete"),
     path("valorar/", ValoracioCreateView.as_view(), name="valoracio_create"),
     
     # Registres Diaris i Informes IA
